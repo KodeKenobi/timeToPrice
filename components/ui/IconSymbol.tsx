@@ -28,6 +28,7 @@ const MAPPING = {
   eco: "eco",
   "access-time": "access-time",
   "notifications-none": "notifications-none",
+  close: "close",
   // Dashboard card icons
   history: "history",
   "trending-up": "trending-up",

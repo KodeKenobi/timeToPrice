@@ -64,6 +64,7 @@ export const HomeHeader = ({
           ? styles.headerBgCompact.paddingBottom
           : styles.headerBg.paddingBottom),
     },
+    onBackPress && { paddingHorizontal: 4 },
   ];
   return (
     <View style={headerBgStyle}>
@@ -72,7 +73,7 @@ export const HomeHeader = ({
           <Pressable
             onPress={onBackPress}
             style={{
-              marginRight: 10,
+              marginRight: 0,
               alignItems: "center",
               justifyContent: "center",
               minWidth: 44,

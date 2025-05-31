@@ -1,4 +1,5 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -16,57 +17,44 @@ import { HomeHeader } from "../../components/HomeHeader";
 
 const { width } = Dimensions.get("window");
 
-// Dummy notification data for demo
-const demoNotifications = [
-  {
-    id: "1",
-    title: "Price Alert!",
-    body: "YELLOW MAIZE FUTURE SPOT has exceeded your target price.",
-    image_url: null,
-    button_text: null,
-    button_link: null,
-    screen: null,
-    params: {},
-    notification_type: "alert",
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "System Update",
-    body: "Your app has been updated to the latest version.",
-    image_url: null,
-    button_text: null,
-    button_link: null,
-    screen: null,
-    params: {},
-    notification_type: "system",
-    is_active: true,
-    created_at: new Date(Date.now() - 3600 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 3600 * 1000).toISOString(),
-  },
-];
-
-type Notification = (typeof demoNotifications)[number];
+interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  button_text: string | null;
+  button_link: string | null;
+  screen: string | null;
+  params: Record<string, any>;
+  notification_type: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 console.log("[NotificationsScreen (app/notifications/index)] File loaded");
-export default function NotificationsScreen({
-  notifications = demoNotifications,
-}: {
-  notifications?: Notification[];
-}) {
-  console.log("[NotificationsScreen (app/notifications/index)] Render", {
-    notifications,
-  });
+export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [notifs, setNotifs] = useState<Notification[]>(notifications);
+  const [notifs, setNotifs] = useState<Notification[]>([]);
   const router = useRouter();
+  const NOTIFICATIONS_KEY = "@local_notifications";
 
   useEffect(() => {
     console.log(
       "[NotificationsScreen (app/notifications/index)] useEffect (mount)"
     );
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+        if (stored) {
+          setNotifs(JSON.parse(stored));
+        } else {
+          setNotifs([]);
+        }
+      } catch (e) {
+        setNotifs([]);
+      }
+    })();
     return () => {
       console.log(
         "[NotificationsScreen (app/notifications/index)] useEffect (unmount)"
@@ -79,7 +67,17 @@ export default function NotificationsScreen({
       "[NotificationsScreen (app/notifications/index)] onRefresh called"
     );
     setRefreshing(true);
-    // Fetch notifications here if needed
+    // Reload notifications from storage
+    try {
+      const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+      if (stored) {
+        setNotifs(JSON.parse(stored));
+      } else {
+        setNotifs([]);
+      }
+    } catch (e) {
+      setNotifs([]);
+    }
     setRefreshing(false);
   };
 
@@ -94,6 +92,21 @@ export default function NotificationsScreen({
     });
   };
 
+  // Remove all notifications
+  const handleClearAll = async () => {
+    setNotifs([]);
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([]));
+  };
+
+  // Remove a single notification by id
+  const handleRemoveNotification = async (id: string) => {
+    setNotifs((prev) => {
+      const updated = prev.filter((n) => n.id !== id);
+      AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const renderNotification = ({ item }: { item: Notification }) => {
     console.log(
       "[NotificationsScreen (app/notifications/index)] renderNotification",
@@ -104,9 +117,24 @@ export default function NotificationsScreen({
         style={styles.notificationItem}
         onPress={() => handleNotificationPress(item)}
       >
+        {/* X button to remove notification */}
+        <TouchableOpacity
+          style={styles.closeNotifBtn}
+          onPress={() => handleRemoveNotification(item.id)}
+          hitSlop={10}
+        >
+          <IconSymbol name="close" size={18} color="#888" />
+        </TouchableOpacity>
         <View style={styles.notificationContent}>
           <View style={styles.notificationHeader}>
             <View style={styles.titleContainer}>
+              <View style={styles.bellIconWrapper}>
+                <IconSymbol
+                  name="notifications-none"
+                  size={20}
+                  color="#3e6b2f"
+                />
+              </View>
               <IconSymbol
                 name={getNotificationIcon(item.notification_type)}
                 size={20}
@@ -161,6 +189,11 @@ export default function NotificationsScreen({
     }
   };
 
+  // Persist notifications to storage whenever they change
+  useEffect(() => {
+    AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
+  }, [notifs]);
+
   // Log all state on every render
   useEffect(() => {
     console.log(
@@ -180,6 +213,15 @@ export default function NotificationsScreen({
         onBackPress={() => router.back()}
         paddingOverride={{ paddingTop: 40, paddingBottom: 28 }}
       />
+      {/* Clear All Button */}
+      <View style={styles.clearAllRow}>
+        <View style={{ flex: 1 }} />
+        {notifs.length > 0 && (
+          <Text style={styles.clearAllText} onPress={handleClearAll}>
+            Clear All
+          </Text>
+        )}
+      </View>
       {/* Main Content Section */}
       <View style={styles.contentSection}>
         <FlatList
@@ -248,11 +290,10 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     flex: 1,
-    backgroundColor: "#fff",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     marginTop: -8,
-    paddingTop: 28,
+    paddingTop: 0,
     // paddingHorizontal: 18,
     zIndex: 1,
   },
@@ -260,7 +301,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   notificationItem: {
-    backgroundColor: "#e9f5e1",
+    backgroundColor: "#f7f8f6",
     borderRadius: 12,
     marginBottom: 10,
     overflow: "hidden",
@@ -289,6 +330,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
   },
+  bellIconWrapper: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#e9f5e1",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#b7c9a8",
+  },
   notificationIcon: {
     marginRight: 6,
   },
@@ -297,6 +349,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     flex: 1,
+    marginLeft: 2,
   },
   notificationImage: {
     width: width - 48,
@@ -384,6 +437,38 @@ const styles = StyleSheet.create({
   headerRightTextContainer: {
     minWidth: 60,
     alignItems: "flex-end",
+  },
+  clearAllRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingHorizontal: 18,
+    marginTop: 2,
+    marginBottom: 6,
+    minHeight: 28,
+  },
+  clearAllText: {
+    color: "#3e6b2f",
+    fontWeight: "bold",
+    fontSize: 15,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  closeNotifBtn: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 2,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
 });
 
