@@ -1,7 +1,7 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { HomeHeader } from "../../components/HomeHeader";
 
 const { width } = Dimensions.get("window");
 
@@ -174,16 +175,11 @@ export default function NotificationsScreen({
   return (
     <View style={styles.root}>
       {/* Header Section */}
-      <View style={styles.headerBg}>
-        <View style={styles.headerRow}>
-          <Text style={styles.greeting}>Notifications</Text>
-          <View style={styles.headerIcons}>
-            <View style={styles.headerNotifCircle}>
-              <IconSymbol name="notifications-none" size={25} color="#fff" />
-            </View>
-          </View>
-        </View>
-      </View>
+      <HomeHeader
+        title="Notifications"
+        onBackPress={() => router.back()}
+        paddingOverride={{ paddingTop: 40, paddingBottom: 28 }}
+      />
       {/* Main Content Section */}
       <View style={styles.contentSection}>
         <FlatList

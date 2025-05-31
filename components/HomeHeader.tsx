@@ -11,6 +11,8 @@ interface HomeHeaderProps {
   alertsCount?: number;
   commoditiesCount?: number;
   lastCalcTime?: Date | null;
+  onBackPress?: () => void;
+  paddingOverride?: { paddingTop?: number; paddingBottom?: number };
 }
 
 // Compact relative time formatter
@@ -43,10 +45,49 @@ export const HomeHeader = ({
   alertsCount = 0,
   commoditiesCount = 0,
   lastCalcTime = null,
+  onBackPress,
+  paddingOverride,
 }: HomeHeaderProps) => {
+  // Compute dynamic padding if override is provided
+  const headerBgStyle = [
+    styles.headerBg,
+    centerTitle && styles.headerBgCompact,
+    paddingOverride && {
+      paddingTop:
+        paddingOverride.paddingTop ??
+        (centerTitle
+          ? styles.headerBgCompact.paddingTop
+          : styles.headerBg.paddingTop),
+      paddingBottom:
+        paddingOverride.paddingBottom ??
+        (centerTitle
+          ? styles.headerBgCompact.paddingBottom
+          : styles.headerBg.paddingBottom),
+    },
+  ];
   return (
-    <View style={[styles.headerBg, centerTitle && styles.headerBgCompact]}>
+    <View style={headerBgStyle}>
       <View style={[styles.headerRow, centerTitle && styles.headerRowCenter]}>
+        {onBackPress && (
+          <Pressable
+            onPress={onBackPress}
+            style={{
+              marginRight: 10,
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 44,
+              minHeight: 44,
+            }}
+            hitSlop={10}
+          >
+            <IconSymbol
+              name="chevron.right"
+              size={28}
+              color="#fff"
+              style={{ transform: [{ scaleX: -1 }] }}
+            />
+          </Pressable>
+        )}
         <View style={centerTitle ? styles.headerContentCenter : undefined}>
           {showGreeting ? (
             <>
@@ -85,7 +126,7 @@ export const HomeHeader = ({
         <View style={styles.infoCardWhite}>
           <View style={styles.statsRowHorz}>
             <View style={styles.statsItemHorz}>
-              <IconSymbol name="home" size={20} color="#7a7a52" />
+              <IconSymbol name="notifications-none" size={20} color="#7a7a52" />
               <Text style={styles.statsValueHorz}>{alertsCount}</Text>
               <Text style={styles.statsLabelHorz}>Saved Alerts</Text>
             </View>
@@ -179,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.7)",
     borderRadius: 22,
     paddingVertical: 18,
-    paddingHorizontal: 18,
+    paddingHorizontal: 0,
     alignItems: "center",
     marginTop: 18,
     marginHorizontal: 2,

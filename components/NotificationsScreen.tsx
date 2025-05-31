@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatDistanceToNow } from "date-fns";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -264,18 +264,30 @@ const NotificationsScreen = ({
   // Log the notifications shown in the FlatList before rendering
   console.log("[Notifications Displayed in FlatList]", notifs);
   return (
-    <View style={styles.container}>
-      <View style={styles.customHeaderRow}>
+    <View style={{ flex: 1, backgroundColor: "#e9f5e1" }}>
+      {/* Header with back button */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#3e6b2f",
+          paddingTop: 44,
+          paddingBottom: 18,
+          paddingHorizontal: 14,
+          borderBottomLeftRadius: 32,
+          borderBottomRightRadius: 32,
+          zIndex: 2,
+        }}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.headerIconButton}
+          style={{ marginRight: 12, padding: 4 }}
         >
-          <IconSymbol name="chevron.left" size={24} color="#3e6b2f" />
+          <IconSymbol name="chevron-left" size={28} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.headerCenterTextContainer}>
-          <Text style={styles.headerTitle}>Notifications</Text>
-        </View>
-        <View style={styles.headerRightTextContainer} />
+        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+          Notifications
+        </Text>
       </View>
       <FlatList
         data={notifs}
