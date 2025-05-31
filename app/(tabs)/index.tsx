@@ -3,7 +3,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import * as Notifications from "expo-notifications";
-import { router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { XMLParser } from "fast-xml-parser";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -19,49 +19,19 @@ import {
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import CostAnalysisModal from "../../components/CostAnalysisModal";
 import { HomeHeader } from "../../components/HomeHeader";
+import PreviousCalculationsModal from "../../components/PreviousCalculationsModal";
 import { useNotifications } from "../../context/NotificationContext";
 import { RootState, addAlert, removeAlert } from "../../lib/store";
 
-const cards = [
-  {
-    title: "New Calculation",
-    subtitle: "Create cost calculation",
-    badge: "Calculate Now",
-    icon: "calculator",
-    onPress: () => router.push("/calculate"),
-  },
-  {
-    title: "Previous Calculations",
-    subtitle: "View history",
-    badge: "History",
-    icon: "history",
-    onPress: () => {},
-  },
-  {
-    title: "Market Prices",
-    subtitle: "Check current rates",
-    badge: "Live Prices",
-    icon: "trending-up",
-    onPress: () => {},
-  },
-  {
-    title: "Cost Analysis",
-    subtitle: "View insights",
-    badge: "Analytics",
-    icon: "bar-chart",
-    onPress: () => {},
-  },
-];
+const NOTIFICATIONS_KEY = "@local_notifications";
 
-console.log("[HomeScreen] File loaded");
 // Helper function for sentence case
 function toSentenceCase(str: string): string {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
-
-const NOTIFICATIONS_KEY = "@local_notifications";
 
 // Save notification to AsyncStorage for notifications screen
 const saveNotification = async (notification: any) => {
@@ -112,7 +82,6 @@ export default function HomeScreen(props: any) {
   const [savedEntries, setSavedEntries] = useState<any[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const appState = useRef(AppState.currentState);
-  const [notificationCount, setNotificationCount] = useState(0);
   const [notificationsList, setNotificationsList] = useState<any[]>([]);
   const router = useRouter();
   const [alertsModalVisible, setAlertsModalVisible] = useState(false);
@@ -138,6 +107,40 @@ export default function HomeScreen(props: any) {
   console.log("priceTypeOptions", ["High", "Low", "Last"]);
 
   const [lastCalcTime, setLastCalcTime] = useState<Date | null>(null);
+  const [showPrevCalcs, setShowPrevCalcs] = useState(false);
+  const [costAnalysisModalVisible, setCostAnalysisModalVisible] =
+    useState(false);
+
+  const cards = [
+    {
+      title: "New Calculation",
+      subtitle: "Create cost calculation",
+      badge: "Calculate Now",
+      icon: "calculator",
+      onPress: () => router.push("/calculate"),
+    },
+    {
+      title: "Previous Calculations",
+      subtitle: "View history",
+      badge: "History",
+      icon: "history",
+      onPress: () => setShowPrevCalcs(true),
+    },
+    {
+      title: "Market Prices",
+      subtitle: "Check current rates",
+      badge: "Live Prices",
+      icon: "trending-up",
+      onPress: () => {},
+    },
+    {
+      title: "Cost Analysis",
+      subtitle: "View insights",
+      badge: "Analytics",
+      icon: "bar-chart",
+      onPress: () => setCostAnalysisModalVisible(true),
+    },
+  ];
 
   useEffect(() => {
     console.log("[HomeScreen] useEffect (mount)");
@@ -360,11 +363,6 @@ export default function HomeScreen(props: any) {
           console.log("[HomeScreen] Updated notificationsList", updated);
           return updated;
         });
-        setNotificationCount((count) => {
-          const updated = count + 1;
-          console.log("[HomeScreen] Updated notificationCount", updated);
-          return updated;
-        });
         saveNotification(notification);
       }
     );
@@ -375,7 +373,6 @@ export default function HomeScreen(props: any) {
   }, []);
 
   const handleOpenNotificationsScreen = () => {
-    setNotificationCount(0);
     router.push("./notifications");
     console.log("[HomeScreen] handleOpenNotificationsScreen");
   };
@@ -388,7 +385,6 @@ export default function HomeScreen(props: any) {
       marketData,
       marketError,
       savedEntries,
-      notificationCount,
       notificationsList,
       alertsModalVisible,
     });
@@ -451,7 +447,7 @@ export default function HomeScreen(props: any) {
       <HomeHeader
         showStats
         showGreeting
-        notificationCount={notificationCount}
+        notificationCount={notifications.length}
         onNotificationsPress={handleOpenNotificationsScreen}
         alertsCount={alerts.length}
         commoditiesCount={commodityOptions.length}
@@ -475,7 +471,7 @@ export default function HomeScreen(props: any) {
           contentContainerStyle={styles.cardsListContent}
           showsVerticalScrollIndicator={false}
         >
-          {cardsWithModal.map((card, idx) => (
+          {cards.map((card, idx) => (
             <Pressable
               key={idx}
               style={({ pressed }) => [
@@ -507,6 +503,11 @@ export default function HomeScreen(props: any) {
           ))}
         </ScrollView>
       </View>
+      {/* Previous Calculations Modal */}
+      <PreviousCalculationsModal
+        visible={showPrevCalcs}
+        onClose={() => setShowPrevCalcs(false)}
+      />
       {/* Market Prices Modal */}
       <Modal
         visible={marketModalVisible}
@@ -700,7 +701,7 @@ export default function HomeScreen(props: any) {
         >
           <HomeHeader
             title="Alerts"
-            notificationCount={notificationCount}
+            notificationCount={notifications.length}
             onNotificationsPress={handleOpenNotificationsScreen}
             centerTitle
           />
@@ -1056,6 +1057,10 @@ export default function HomeScreen(props: any) {
           </ScrollView>
         </View>
       </Modal>
+      <CostAnalysisModal
+        visible={costAnalysisModalVisible}
+        onClose={() => setCostAnalysisModalVisible(false)}
+      />
     </View>
   );
 }

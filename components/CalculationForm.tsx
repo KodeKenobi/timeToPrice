@@ -1,3 +1,4 @@
+import { HomeHeader } from "@/components/HomeHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import {
@@ -47,6 +48,7 @@ export default function CalculationForm(props: any) {
   } | null>(null);
   const [resultModalVisible, setResultModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const PREVIOUS_CALCS_KEY = "@previous_calculations";
 
   useEffect(() => {
     console.log("[CalculationForm] State snapshot", {
@@ -117,8 +119,17 @@ export default function CalculationForm(props: any) {
     // Save last calculation time
     try {
       await AsyncStorage.setItem("@last_calc_time", Date.now().toString());
+      // Save all fields and result to previous calculations
+      const prev = await AsyncStorage.getItem(PREVIOUS_CALCS_KEY);
+      const prevArr = prev ? JSON.parse(prev) : [];
+      prevArr.unshift({
+        fields,
+        result: calcResult,
+        timestamp: Date.now(),
+      });
+      await AsyncStorage.setItem(PREVIOUS_CALCS_KEY, JSON.stringify(prevArr));
     } catch (e) {
-      console.warn("Failed to save last calc time", e);
+      console.warn("Failed to save last calc time or previous calculation", e);
     }
     // Simulate loading for 1 second
     setTimeout(() => {
@@ -140,7 +151,8 @@ export default function CalculationForm(props: any) {
           value={fields.hectares}
           onChangeText={(v) => handleChange("hectares", v)}
           keyboardType="numeric"
-          placeholder="e.g. 100"
+          placeholder="Enter hectares planted"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -150,7 +162,8 @@ export default function CalculationForm(props: any) {
           value={fields.seedCost}
           onChangeText={(v) => handleChange("seedCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 5000"
+          placeholder="Enter total seed cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -160,7 +173,8 @@ export default function CalculationForm(props: any) {
           value={fields.fertiliserCost}
           onChangeText={(v) => handleChange("fertiliserCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 2000"
+          placeholder="Enter total fertiliser cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -170,7 +184,8 @@ export default function CalculationForm(props: any) {
           value={fields.chemicalsCost}
           onChangeText={(v) => handleChange("chemicalsCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 1200"
+          placeholder="Enter estimated total chemicals cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -180,7 +195,8 @@ export default function CalculationForm(props: any) {
           value={fields.employeeCost}
           onChangeText={(v) => handleChange("employeeCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 3000"
+          placeholder="Enter total employee cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -190,7 +206,8 @@ export default function CalculationForm(props: any) {
           value={fields.eskomCost}
           onChangeText={(v) => handleChange("eskomCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 800"
+          placeholder="Enter total eskom cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -200,7 +217,8 @@ export default function CalculationForm(props: any) {
           value={fields.fuelCost}
           onChangeText={(v) => handleChange("fuelCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 1500"
+          placeholder="Enter total fuel cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -210,7 +228,8 @@ export default function CalculationForm(props: any) {
           value={fields.transportCost}
           onChangeText={(v) => handleChange("transportCost", v)}
           keyboardType="numeric"
-          placeholder="e.g. 600"
+          placeholder="Enter total transport cost"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -220,7 +239,8 @@ export default function CalculationForm(props: any) {
           value={fields.otherExpenses}
           onChangeText={(v) => handleChange("otherExpenses", v)}
           keyboardType="numeric"
-          placeholder="e.g. 400"
+          placeholder="Enter other expenses"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -230,7 +250,8 @@ export default function CalculationForm(props: any) {
           value={fields.profitWanted}
           onChangeText={(v) => handleChange("profitWanted", v)}
           keyboardType="numeric"
-          placeholder="e.g. 10000"
+          placeholder="Enter total profit wanted"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
@@ -240,7 +261,8 @@ export default function CalculationForm(props: any) {
           value={fields.averageYield}
           onChangeText={(v) => handleChange("averageYield", v)}
           keyboardType="numeric"
-          placeholder="e.g. 5"
+          placeholder="Enter average long term yield per hectare"
+          placeholderTextColor="#888"
         />
       </View>
       <View style={[styles.fieldGroup, styles.row]}>
@@ -258,7 +280,8 @@ export default function CalculationForm(props: any) {
             value={fields.insurance}
             onChangeText={(v) => handleChange("insurance", v)}
             keyboardType="numeric"
-            placeholder="e.g. 2000"
+            placeholder="Enter insurance amount"
+            placeholderTextColor="#888"
           />
         </View>
       )}
@@ -316,141 +339,159 @@ export default function CalculationForm(props: any) {
       {/* Result Modal */}
       <Modal
         visible={resultModalVisible}
-        transparent
-        animationType="fade"
+        transparent={false}
+        animationType="slide"
         onRequestClose={() => setResultModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Calculation Result</Text>
-            {loading ? (
-              <View style={{ alignItems: "center", marginVertical: 24 }}>
-                <ActivityIndicator size="large" color="#3e6b2f" />
-                <Text style={{ marginTop: 16, fontSize: 16 }}>
-                  Calculating...
-                </Text>
-              </View>
-            ) : (
-              result && (
-                <>
-                  <ScrollView style={{ maxHeight: 350 }}>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Hectares Planted:
-                      </Text>{" "}
-                      {fields.hectares}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Seed Cost:
-                      </Text>{" "}
-                      {fields.seedCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Fertiliser Cost:
-                      </Text>{" "}
-                      {fields.fertiliserCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Estimated Total Chemicals Cost:
-                      </Text>{" "}
-                      {fields.chemicalsCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Employee Cost:
-                      </Text>{" "}
-                      {fields.employeeCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Eskom Cost:
-                      </Text>{" "}
-                      {fields.eskomCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Fuel Cost:
-                      </Text>{" "}
-                      {fields.fuelCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Transport Cost:
-                      </Text>{" "}
-                      {fields.transportCost}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Other Expenses:
-                      </Text>{" "}
-                      {fields.otherExpenses}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Total Profit Wanted:
-                      </Text>{" "}
-                      {fields.profitWanted}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Average long term yield per Hectare:
-                      </Text>{" "}
-                      {fields.averageYield}
-                    </Text>
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Do you have insurance?:
-                      </Text>{" "}
-                      {fields.hasInsurance ? "Yes" : "No"}
-                    </Text>
-                    {fields.hasInsurance && (
-                      <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                        <Text style={{ fontWeight: "bold" }}>
-                          Insurance Amount:
-                        </Text>{" "}
-                        {fields.insurance}
-                      </Text>
-                    )}
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        Type of Commodity:
-                      </Text>{" "}
-                      {fields.commodity}
-                    </Text>
+        <View style={{ flex: 1, backgroundColor: "#e9f5e1" }}>
+          <HomeHeader
+            title="Calculation Result"
+            onBackPress={() => setResultModalVisible(false)}
+            paddingOverride={{ paddingTop: 54, paddingBottom: 32 }}
+          />
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 18,
+                padding: 18,
+                shadowColor: "#000",
+                shadowOpacity: 0.06,
+                shadowRadius: 2,
+                elevation: 2,
+                borderWidth: 1,
+                borderColor: "#b7c9a8",
+                marginBottom: 24,
+              }}
+            >
+              {loading ? (
+                <View style={{ alignItems: "center", marginVertical: 24 }}>
+                  <ActivityIndicator size="large" color="#3e6b2f" />
+                  <Text style={{ marginTop: 16, fontSize: 16 }}>
+                    Calculating...
+                  </Text>
+                </View>
+              ) : (
+                result && (
+                  <>
+                    {[
+                      { label: "Hectares Planted", value: fields.hectares },
+                      { label: "Total Seed Cost", value: fields.seedCost },
+                      {
+                        label: "Total Fertiliser Cost",
+                        value: fields.fertiliserCost,
+                      },
+                      {
+                        label: "Estimated Total Chemicals Cost",
+                        value: fields.chemicalsCost,
+                      },
+                      {
+                        label: "Total Employee Cost",
+                        value: fields.employeeCost,
+                      },
+                      { label: "Total Eskom Cost", value: fields.eskomCost },
+                      { label: "Total Fuel Cost", value: fields.fuelCost },
+                      {
+                        label: "Total Transport Cost",
+                        value: fields.transportCost,
+                      },
+                      { label: "Other Expenses", value: fields.otherExpenses },
+                      {
+                        label: "Total Profit Wanted",
+                        value: fields.profitWanted,
+                      },
+                      {
+                        label: "Average long term yield per Hectare",
+                        value: fields.averageYield,
+                      },
+                      {
+                        label: "Do you have insurance?",
+                        value: fields.hasInsurance ? "Yes" : "No",
+                      },
+                      ...(fields.hasInsurance
+                        ? [
+                            {
+                              label: "Insurance Amount",
+                              value: fields.insurance,
+                            },
+                          ]
+                        : []),
+                      { label: "Commodity", value: fields.commodity },
+                    ].map((row, idx) => (
+                      <View
+                        key={row.label}
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          backgroundColor:
+                            idx % 2 === 0 ? "#f7faf3" : "#f0f4ea",
+                          paddingVertical: 10,
+                          paddingHorizontal: 8,
+                          borderTopLeftRadius: idx === 0 ? 12 : 0,
+                          borderTopRightRadius: idx === 0 ? 12 : 0,
+                          borderBottomLeftRadius: idx === 12 ? 12 : 0,
+                          borderBottomRightRadius: idx === 12 ? 12 : 0,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#3e6b2f",
+                            fontWeight: "bold",
+                            fontSize: 15,
+                          }}
+                        >
+                          {row.label}
+                        </Text>
+                        <Text style={{ color: "#222", fontSize: 15 }}>
+                          {row.value}
+                        </Text>
+                      </View>
+                    ))}
+                    <View style={{ height: 12 }} />
                     <View
                       style={{
-                        borderTopWidth: 1,
-                        borderTopColor: "#b7c9a8",
-                        marginVertical: 12,
+                        backgroundColor: "#e9f5e1",
+                        borderRadius: 10,
+                        paddingVertical: 12,
+                        paddingHorizontal: 8,
+                        marginTop: 4,
+                        marginBottom: 2,
                       }}
-                    />
-                    <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                      Break-even Price per ton:{" "}
-                      <Text style={{ fontWeight: "bold" }}>
-                        R{result.breakEven}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: "#2e7d32",
+                          fontWeight: "bold",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Break-even Price per ton: R{result.breakEven}
                       </Text>
-                    </Text>
-                    <Text style={{ fontSize: 16 }}>
-                      Price per ton (including profit):{" "}
-                      <Text style={{ fontWeight: "bold" }}>
-                        R{result.priceWithProfit}
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: "#2e7d32",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Price per ton (including profit): R
+                        {result.priceWithProfit}
                       </Text>
-                    </Text>
-                  </ScrollView>
-                </>
-              )
-            )}
-            <TouchableOpacity
-              style={[styles.modalCancel, loading && { opacity: 0.5 }]}
-              onPress={() => !loading && setResultModalVisible(false)}
-              disabled={loading}
-            >
-              <Text style={styles.modalCancelText}>Close</Text>
-            </TouchableOpacity>
-          </View>
+                    </View>
+                  </>
+                )
+              )}
+              <TouchableOpacity
+                style={[styles.modalCancel, loading && { opacity: 0.5 }]}
+                onPress={() => !loading && setResultModalVisible(false)}
+                disabled={loading}
+              >
+                <Text style={styles.modalCancelText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </ScrollView>

@@ -6,6 +6,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
@@ -29,6 +30,9 @@ export default function NotificationsScreen() {
   const { notifications, clearAll, removeNotification } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -37,14 +41,8 @@ export default function NotificationsScreen() {
   };
 
   const handleNotificationPress = (notification: Notification) => {
-    console.log(
-      "[NotificationsScreen (app/notifications/index)] handleNotificationPress",
-      notification
-    );
-    router.push({
-      pathname: "/notifications/detail",
-      params: { notification: JSON.stringify(notification) },
-    });
+    setSelectedNotification(notification);
+    setModalVisible(true);
   };
 
   // Remove all notifications
@@ -60,10 +58,6 @@ export default function NotificationsScreen() {
   };
 
   const renderNotification = ({ item }: { item: Notification }) => {
-    console.log(
-      "[NotificationsScreen (app/notifications/index)] renderNotification",
-      item
-    );
     return (
       <TouchableOpacity
         style={styles.notificationItem}
@@ -158,7 +152,7 @@ export default function NotificationsScreen() {
       <HomeHeader
         title="Notifications"
         onBackPress={() => router.back()}
-        paddingOverride={{ paddingTop: 40, paddingBottom: 28 }}
+        paddingOverride={{ paddingTop: 60, paddingBottom: 28 }}
       />
       {/* Clear All Button */}
       <View style={styles.clearAllRow}>
@@ -192,6 +186,47 @@ export default function NotificationsScreen() {
           }
         />
       </View>
+      {/* Notification Details Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>×</Text>
+            </TouchableOpacity>
+            {selectedNotification && (
+              <>
+                <Text style={styles.modalTitle}>
+                  {selectedNotification.title}
+                </Text>
+                <Text style={styles.modalTime}>
+                  {formatDistanceToNow(
+                    new Date(selectedNotification.created_at),
+                    { addSuffix: true }
+                  )}
+                </Text>
+                {selectedNotification.image_url && (
+                  <Image
+                    source={{ uri: selectedNotification.image_url }}
+                    style={styles.modalImage}
+                    resizeMode="cover"
+                  />
+                )}
+                <Text style={styles.modalBody}>
+                  {selectedNotification.body}
+                </Text>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -422,6 +457,59 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    width: "90%",
+    maxWidth: 400,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  modalCloseBtn: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 10,
+  },
+  modalCloseText: {
+    fontSize: 28,
+    color: "#3e6b2f",
+    fontWeight: "bold",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#3e6b2f",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalTime: {
+    color: "#888",
+    fontSize: 13,
+    marginBottom: 12,
+  },
+  modalImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  modalBody: {
+    fontSize: 16,
+    color: "#222",
+    textAlign: "center",
+    marginBottom: 8,
   },
 });
 
