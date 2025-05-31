@@ -1,5 +1,4 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -13,72 +12,28 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  dismissAllNotifications,
+  dismissNotificationById,
+} from "../(tabs)/index";
 import { HomeHeader } from "../../components/HomeHeader";
+import {
+  Notification,
+  useNotifications,
+} from "../../context/NotificationContext";
 
 const { width } = Dimensions.get("window");
 
-interface Notification {
-  id: string;
-  title: string;
-  body: string;
-  image_url: string | null;
-  button_text: string | null;
-  button_link: string | null;
-  screen: string | null;
-  params: Record<string, any>;
-  notification_type: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 console.log("[NotificationsScreen (app/notifications/index)] File loaded");
 export default function NotificationsScreen() {
+  const { notifications, clearAll, removeNotification } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
-  const [notifs, setNotifs] = useState<Notification[]>([]);
   const router = useRouter();
-  const NOTIFICATIONS_KEY = "@local_notifications";
-
-  useEffect(() => {
-    console.log(
-      "[NotificationsScreen (app/notifications/index)] useEffect (mount)"
-    );
-    (async () => {
-      try {
-        const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-        if (stored) {
-          setNotifs(JSON.parse(stored));
-        } else {
-          setNotifs([]);
-        }
-      } catch (e) {
-        setNotifs([]);
-      }
-    })();
-    return () => {
-      console.log(
-        "[NotificationsScreen (app/notifications/index)] useEffect (unmount)"
-      );
-    };
-  }, []);
 
   const onRefresh = async () => {
-    console.log(
-      "[NotificationsScreen (app/notifications/index)] onRefresh called"
-    );
     setRefreshing(true);
-    // Reload notifications from storage
-    try {
-      const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-      if (stored) {
-        setNotifs(JSON.parse(stored));
-      } else {
-        setNotifs([]);
-      }
-    } catch (e) {
-      setNotifs([]);
-    }
-    setRefreshing(false);
+    // No-op: notifications are always in sync via context
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   const handleNotificationPress = (notification: Notification) => {
@@ -94,17 +49,14 @@ export default function NotificationsScreen() {
 
   // Remove all notifications
   const handleClearAll = async () => {
-    setNotifs([]);
-    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([]));
+    await clearAll();
+    await dismissAllNotifications();
   };
 
   // Remove a single notification by id
   const handleRemoveNotification = async (id: string) => {
-    setNotifs((prev) => {
-      const updated = prev.filter((n) => n.id !== id);
-      AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    await removeNotification(id);
+    await dismissNotificationById(id);
   };
 
   const renderNotification = ({ item }: { item: Notification }) => {
@@ -189,18 +141,13 @@ export default function NotificationsScreen() {
     }
   };
 
-  // Persist notifications to storage whenever they change
-  useEffect(() => {
-    AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
-  }, [notifs]);
-
   // Log all state on every render
   useEffect(() => {
     console.log(
       "[NotificationsScreen (app/notifications/index)] State snapshot",
       {
         refreshing,
-        notifs,
+        notifications,
       }
     );
   });
@@ -216,7 +163,7 @@ export default function NotificationsScreen() {
       {/* Clear All Button */}
       <View style={styles.clearAllRow}>
         <View style={{ flex: 1 }} />
-        {notifs.length > 0 && (
+        {notifications.length > 0 && (
           <Text style={styles.clearAllText} onPress={handleClearAll}>
             Clear All
           </Text>
@@ -225,9 +172,15 @@ export default function NotificationsScreen() {
       {/* Main Content Section */}
       <View style={styles.contentSection}>
         <FlatList
-          data={notifs}
-          renderItem={renderNotification}
-          keyExtractor={(item) => item.id}
+          data={notifications}
+          renderItem={
+            renderNotification as ({
+              item,
+            }: {
+              item: Notification;
+            }) => React.ReactElement
+          }
+          keyExtractor={(item: Notification) => item.id}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

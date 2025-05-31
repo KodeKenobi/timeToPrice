@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { HomeHeader } from "../../components/HomeHeader";
+import { useNotifications } from "../../context/NotificationContext";
 import { RootState, addAlert, removeAlert } from "../../lib/store";
 
 const cards = [
@@ -60,6 +61,48 @@ function toSentenceCase(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+const NOTIFICATIONS_KEY = "@local_notifications";
+
+// Save notification to AsyncStorage for notifications screen
+const saveNotification = async (notification: any) => {
+  try {
+    const existing = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+    const notifs = existing ? JSON.parse(existing) : [];
+    const n = {
+      id: notification.request.identifier,
+      title: notification.request.content.title || "No Title",
+      body: notification.request.content.body || "",
+      image_url: notification.request.content.data?.image_url || null,
+      button_text: notification.request.content.data?.button_text || null,
+      button_link: notification.request.content.data?.button_link || null,
+      screen: notification.request.content.data?.screen || null,
+      params: notification.request.content.data?.params || {},
+      notification_type:
+        notification.request.content.data?.notification_type || "system",
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    notifs.unshift(n);
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
+  } catch (e) {
+    // handle error
+  }
+};
+
+// Export these helper functions for use in notifications screen
+export const dismissNotificationById = async (id: string) => {
+  try {
+    await Notifications.dismissNotificationAsync(id);
+  } catch {}
+};
+
+export const dismissAllNotifications = async () => {
+  try {
+    await Notifications.dismissAllNotificationsAsync();
+  } catch {}
+};
+
 export default function HomeScreen(props: any) {
   console.log("[HomeScreen] Render", { props });
   const [marketModalVisible, setMarketModalVisible] = useState(false);
@@ -81,6 +124,7 @@ export default function HomeScreen(props: any) {
   const [targetValue, setTargetValue] = useState("");
   const alerts = useSelector((state: RootState) => state.alerts.alerts);
   const dispatch = useDispatch();
+  const { notifications } = useNotifications();
   // Get unique commodities from marketData
   const commodityOptions = Array.from(
     new Set(marketData.map((row: any) => row.SecurityName))
@@ -120,17 +164,54 @@ export default function HomeScreen(props: any) {
 
   const sendPriceAlertNotification = async (
     commodity: string,
-    lastPrice: string
+    lastPrice: string,
+    priceType?: string,
+    targetValue?: number
   ) => {
-    console.log("[HomeScreen] sendPriceAlertNotification", {
-      commodity,
-      lastPrice,
-    });
+    if (priceType && targetValue !== undefined) {
+      // Atomic check and write in AsyncStorage
+      const existing = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+      const notifs = existing ? JSON.parse(existing) : [];
+      const duplicate = notifs.find(
+        (n: any) =>
+          n.params &&
+          n.params.commodity === commodity &&
+          n.params.priceType === priceType &&
+          String(n.params.targetValue) === String(targetValue)
+      );
+      if (duplicate) {
+        return; // Don't send duplicate
+      }
+      // Add new notification to storage
+      const n = {
+        id: Date.now().toString(),
+        title: "Alert",
+        body: `Your alert for ${commodity} at ${lastPrice} has been triggered!`,
+        image_url: null,
+        button_text: null,
+        button_link: null,
+        screen: null,
+        params: { commodity, priceType, targetValue },
+        notification_type: "system",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      notifs.unshift(n);
+      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
+      // Optionally: update context if needed (context will sync on next effect)
+    }
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Price Alert for ${commodity}`,
-        body: `The last price (${lastPrice}) is higher than your target price!`,
+        title: "Alert",
+        body: `Your alert for ${commodity} at ${lastPrice} has been triggered!`,
         sound: true,
+        data: {
+          commodity,
+          priceType,
+          targetValue,
+          params: { commodity, priceType, targetValue },
+        },
       },
       trigger: null,
     });
@@ -171,7 +252,12 @@ export default function HomeScreen(props: any) {
           if (entry.commodity === securityName) {
             const targetPrice = parseFloat(entry.priceWithProfit || "0");
             if (lastPrice > targetPrice && targetPrice > 0) {
-              sendPriceAlertNotification(securityName, row.LastPrice);
+              sendPriceAlertNotification(
+                securityName,
+                row.LastPrice,
+                undefined,
+                undefined
+              );
             }
           }
         });
@@ -196,14 +282,16 @@ export default function HomeScreen(props: any) {
               // Only send one notification per alert per fetch
               sendPriceAlertNotification(
                 securityName,
-                `${alert.priceType} price hit: ${alert.targetValue}`
+                `${alert.priceType} price hit: ${alert.targetValue}`,
+                alert.priceType,
+                alert.targetValue
               );
               // Add to notificationsList for notifications screen
               setNotificationsList((prev) => [
                 {
                   request: {
                     content: {
-                      title: `Price Alert for ${securityName}`,
+                      title: `Alert for ${securityName}`,
                       body: `${alert.priceType} price hit: ${alert.targetValue}`,
                     },
                   },
@@ -277,6 +365,7 @@ export default function HomeScreen(props: any) {
           console.log("[HomeScreen] Updated notificationCount", updated);
           return updated;
         });
+        saveNotification(notification);
       }
     );
     return () => {
@@ -335,6 +424,26 @@ export default function HomeScreen(props: any) {
     };
     loadLastCalcTime();
   }, [alertsModalVisible]);
+
+  // Add polling and AppState logic
+  useEffect(() => {
+    // Polling interval
+    const interval = setInterval(() => {
+      fetchMarketData();
+    }, 30000); // every 30 seconds
+
+    // AppState logic
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        fetchMarketData();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, []);
 
   return (
     <View style={styles.root}>

@@ -17,39 +17,20 @@ import { IconSymbol } from "./ui/IconSymbol";
 
 const { width } = Dimensions.get("window");
 
-// Dummy notification data for demo
-const demoNotifications = [
-  {
-    id: "1",
-    title: "Price Alert!",
-    body: "YELLOW MAIZE FUTURE SPOT has exceeded your target price.",
-    image_url: null as string | null,
-    button_text: null as string | null,
-    button_link: null as string | null,
-    screen: null as string | null,
-    params: {} as Record<string, any>,
-    notification_type: "alert",
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "System Update",
-    body: "Your app has been updated to the latest version.",
-    image_url: null as string | null,
-    button_text: null as string | null,
-    button_link: null as string | null,
-    screen: null as string | null,
-    params: {} as Record<string, any>,
-    notification_type: "system",
-    is_active: true,
-    created_at: new Date(Date.now() - 3600 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 3600 * 1000).toISOString(),
-  },
-];
-
-type Notification = (typeof demoNotifications)[number];
+interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  button_text: string | null;
+  button_link: string | null;
+  screen: string | null;
+  params: Record<string, any>;
+  notification_type: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 const NOTIFICATIONS_KEY = "@local_notifications";
 
@@ -74,14 +55,9 @@ const loadNotifications = async (): Promise<Notification[]> => {
 };
 
 console.log("[NotificationsScreen] File loaded");
-const NotificationsScreen = ({
-  notifications = demoNotifications,
-}: {
-  notifications?: Notification[];
-}) => {
-  console.log("[NotificationsScreen] Render", { notifications });
+const NotificationsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [notifs, setNotifs] = useState<Notification[]>(notifications);
+  const [notifs, setNotifs] = useState<Notification[]>([]);
   const router = useRouter();
 
   useEffect(() => {

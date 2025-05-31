@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { NotificationProvider } from "../context/NotificationContext";
 import { persistor, store } from "../lib/store";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -27,19 +28,21 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="notifications"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
+        <NotificationProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="notifications"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </NotificationProvider>
       </PersistGate>
     </Provider>
   );
