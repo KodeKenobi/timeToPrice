@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "t2p",
+    "slug": "t2p",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "t2p",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.kodekenobi.t2p"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "https://nchikeuiratylnxwjoco.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jaGlrZXVpcmF0eWxueHdqb2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0Mjg4ODUsImV4cCI6MjA2NDAwNDg4NX0.5CkTmlsELOAcZqo7EM8d2NawtZjP01-Mt1EY2_l5ldU",
+      "router": {},
+      "eas": {
+        "projectId": "e7419274-e6cb-4dab-be2d-8adbb7606024"
+      }
+    }
+  }
+}
