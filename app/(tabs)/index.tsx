@@ -1,5 +1,6 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import * as Notifications from "expo-notifications";
 import { router, useRouter } from "expo-router";
@@ -91,6 +92,8 @@ export default function HomeScreen(props: any) {
   );
   console.log("commodityOptions", filteredCommodityOptions);
   console.log("priceTypeOptions", ["High", "Low", "Last"]);
+
+  const [lastCalcTime, setLastCalcTime] = useState<Date | null>(null);
 
   useEffect(() => {
     console.log("[HomeScreen] useEffect (mount)");
@@ -259,17 +262,6 @@ export default function HomeScreen(props: any) {
       : card
   );
 
-  const sendTestNotification = async () => {
-    console.log("[HomeScreen] sendTestNotification");
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Test Notification",
-        body: "This is a test notification!",
-      },
-      trigger: null,
-    });
-  };
-
   useEffect(() => {
     console.log("[HomeScreen] useEffect (notification listener)");
     const subscription = Notifications.addNotificationReceivedListener(
@@ -332,6 +324,18 @@ export default function HomeScreen(props: any) {
     dispatch(removeAlert(id));
   };
 
+  useEffect(() => {
+    const loadLastCalcTime = async () => {
+      try {
+        const ts = await AsyncStorage.getItem("@last_calc_time");
+        setLastCalcTime(ts ? new Date(Number(ts)) : null);
+      } catch (e) {
+        setLastCalcTime(null);
+      }
+    };
+    loadLastCalcTime();
+  }, [alertsModalVisible]);
+
   return (
     <View style={styles.root}>
       {/* Header Section */}
@@ -340,9 +344,14 @@ export default function HomeScreen(props: any) {
         showGreeting
         notificationCount={notificationCount}
         onNotificationsPress={handleOpenNotificationsScreen}
+        alertsCount={alerts.length}
+        commoditiesCount={commodityOptions.length}
+        lastCalcTime={lastCalcTime}
       />
       {/* Main Content Section */}
-      <View style={styles.contentSection}>
+      <View
+        style={[styles.contentSection, { width: "100%", alignSelf: "center" }]}
+      >
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Dashboard Shortcuts</Text>
           <Pressable
@@ -352,39 +361,6 @@ export default function HomeScreen(props: any) {
             <Text style={styles.sectionViewAllBtnText}>Alerts</Text>
           </Pressable>
         </View>
-        {/* <TouchableOpacity
-          onPress={addTestEntry}
-          style={{
-            marginBottom: 10,
-            alignSelf: "flex-end",
-            backgroundColor: "#e9f5e1",
-            borderRadius: 12,
-            paddingHorizontal: 14,
-            paddingVertical: 6,
-            borderWidth: 1,
-            borderColor: "#3e6b2f",
-          }}
-        >
-          <Text style={{ color: "#3e6b2f", fontWeight: "bold" }}>
-            Add Test Entry
-          </Text>
-        </TouchableOpacity> */}
-        {/* Button to send a test notification */}
-        <TouchableOpacity
-          onPress={sendTestNotification}
-          style={{
-            marginBottom: 10,
-            alignSelf: "flex-end",
-            backgroundColor: "#3e6b2f",
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>
-            Send Test Notification
-          </Text>
-        </TouchableOpacity>
         <ScrollView
           style={styles.cardsListModern}
           contentContainerStyle={styles.cardsListContent}
@@ -609,8 +585,7 @@ export default function HomeScreen(props: any) {
         <View
           style={{
             flex: 1,
-            backgroundColor: "#fff",
-            padding: 0,
+            backgroundColor: "#f4f8f2",
             justifyContent: "flex-start",
           }}
         >
@@ -620,7 +595,17 @@ export default function HomeScreen(props: any) {
             onNotificationsPress={handleOpenNotificationsScreen}
             centerTitle
           />
-          <View style={{ padding: 24, paddingTop: 12 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: 24,
+              paddingTop: 12,
+              width: "100%",
+              alignSelf: "center",
+              paddingBottom: 40,
+              flexGrow: 1,
+            }}
+          >
             <Text
               style={{
                 fontWeight: "bold",
@@ -631,6 +616,30 @@ export default function HomeScreen(props: any) {
             >
               Manage Price Alerts
             </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#e9f5e1",
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 18,
+                marginTop: 2,
+                borderWidth: 1,
+                borderColor: "#b7c9a8",
+              }}
+            >
+              <MaterialIcons
+                name="info-outline"
+                size={22}
+                color="#3e6b2f"
+                style={{ marginRight: 10 }}
+              />
+              <Text style={{ color: "#3e6b2f", fontSize: 15, flex: 1 }}>
+                Tip: Check the Market Prices card on your dashboard for the
+                latest rates.
+              </Text>
+            </View>
             {marketLoading || commodityOptions.length === 0 ? (
               <View style={{ alignItems: "center", marginVertical: 32 }}>
                 <ActivityIndicator size="large" color="#3e6b2f" />
@@ -801,7 +810,11 @@ export default function HomeScreen(props: any) {
                   disabled={!selectedCommodity || !targetValue}
                 >
                   <Text
-                    style={{ color: "#fff", fontWeight: "bold", fontSize: 15 }}
+                    style={{
+                      color: "#fff",
+                      fontWeight: "bold",
+                      fontSize: 15,
+                    }}
                   >
                     Add Alert
                   </Text>
@@ -813,106 +826,117 @@ export default function HomeScreen(props: any) {
                 fontWeight: "bold",
                 fontSize: 18,
                 color: "#3e6b2f",
-                marginBottom: 8,
+                marginBottom: 12,
+                marginTop: 18,
               }}
             >
               Saved Alerts
             </Text>
-            {alerts.length === 0 ? (
-              <Text style={{ color: "#888", marginBottom: 16 }}>
-                No alerts set.
-              </Text>
-            ) : (
-              alerts.map(
-                (alert: {
-                  id: string;
-                  commodity: string;
-                  priceType: string;
-                  targetValue: number;
-                }) => (
-                  <View
-                    key={alert.id}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginBottom: 12,
-                      backgroundColor: "#f7faf3",
-                      borderRadius: 12,
-                      padding: 14,
-                      shadowColor: "#000",
-                      shadowOpacity: 0.04,
-                      shadowRadius: 2,
-                      elevation: 1,
-                      borderWidth: 1,
-                      borderColor: "#e9f5e1",
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          fontWeight: "bold",
-                          color: "#3e6b2f",
-                          fontSize: 15,
-                        }}
-                      >
-                        {toSentenceCase(alert.commodity)}
-                      </Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginTop: 4,
-                        }}
-                      >
+            <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+              {alerts.length === 0 ? (
+                <Text style={{ color: "#888", marginBottom: 16 }}>
+                  No alerts set.
+                </Text>
+              ) : (
+                alerts.map(
+                  (alert: {
+                    id: string;
+                    commodity: string;
+                    priceType: string;
+                    targetValue: number;
+                  }) => (
+                    <View
+                      key={alert.id}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 12,
+                        backgroundColor: "#f7faf3",
+                        borderRadius: 12,
+                        padding: 14,
+                        shadowColor: "#000",
+                        shadowOpacity: 0.04,
+                        shadowRadius: 2,
+                        elevation: 1,
+                        borderWidth: 1,
+                        borderColor: "#e9f5e1",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            color: "#7a7a52",
                             fontWeight: "bold",
-                            fontSize: 13,
-                            marginRight: 8,
+                            color: "#3e6b2f",
+                            fontSize: 15,
                           }}
                         >
-                          {toSentenceCase(alert.priceType)} price
+                          {toSentenceCase(alert.commodity)}
                         </Text>
                         <View
                           style={{
-                            backgroundColor: "#e9f5e1",
-                            borderRadius: 8,
-                            paddingHorizontal: 10,
-                            paddingVertical: 2,
-                            marginRight: 8,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginTop: 4,
                           }}
                         >
                           <Text
                             style={{
-                              color: "#2e7d32",
+                              color: "#7a7a52",
                               fontWeight: "bold",
-                              fontSize: 14,
+                              fontSize: 13,
+                              marginRight: 8,
                             }}
                           >
-                            R{alert.targetValue}
+                            {toSentenceCase(alert.priceType)} price
                           </Text>
+                          <View
+                            style={{
+                              backgroundColor: "#e9f5e1",
+                              borderRadius: 8,
+                              paddingHorizontal: 10,
+                              paddingVertical: 2,
+                              marginRight: 8,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: "#2e7d32",
+                                fontWeight: "bold",
+                                fontSize: 14,
+                              }}
+                            >
+                              R{alert.targetValue}
+                            </Text>
+                          </View>
                         </View>
                       </View>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteAlert(alert.id)}
+                        style={{
+                          marginLeft: 8,
+                          padding: 6,
+                          borderRadius: 16,
+                        }}
+                        accessibilityLabel="Delete alert"
+                      >
+                        <MaterialIcons
+                          name="delete"
+                          size={22}
+                          color="#e57373"
+                        />
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => handleDeleteAlert(alert.id)}
-                      style={{ marginLeft: 8, padding: 6, borderRadius: 16 }}
-                      accessibilityLabel="Delete alert"
-                    >
-                      <MaterialIcons name="delete" size={22} color="#e57373" />
-                    </TouchableOpacity>
-                  </View>
+                  )
                 )
-              )
-            )}
+              )}
+            </ScrollView>
             <TouchableOpacity
               style={{
                 backgroundColor: "#3e6b2f",
                 borderRadius: 24,
                 paddingVertical: 14,
                 alignItems: "center",
-                marginTop: 18,
+                marginTop: 0,
               }}
               onPress={() => setAlertsModalVisible(false)}
             >
@@ -920,7 +944,7 @@ export default function HomeScreen(props: any) {
                 Close
               </Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -1027,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     marginTop: -8,
@@ -1072,18 +1096,18 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   cardModernSingle: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f8f6",
     borderRadius: 18,
     marginBottom: 10,
     paddingVertical: 18,
     paddingHorizontal: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: "#3e6b2f",
+    borderColor: "#b7c9a8",
     minWidth: 0,
     width: "100%",
     maxWidth: "100%",

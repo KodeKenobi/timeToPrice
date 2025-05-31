@@ -8,6 +8,29 @@ interface HomeHeaderProps {
   onNotificationsPress?: () => void;
   title?: string;
   centerTitle?: boolean;
+  alertsCount?: number;
+  commoditiesCount?: number;
+  lastCalcTime?: Date | null;
+}
+
+// Compact relative time formatter
+function formatCompactDistanceToNow(date: Date): string {
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}d ago`;
+  const wk = Math.floor(day / 7);
+  if (wk < 4) return `${wk}w ago`;
+  const mo = Math.floor(day / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  const yr = Math.floor(day / 365);
+  return `${yr}y ago`;
 }
 
 export const HomeHeader = ({
@@ -17,6 +40,9 @@ export const HomeHeader = ({
   onNotificationsPress,
   title = "Dashboard",
   centerTitle = false,
+  alertsCount = 0,
+  commoditiesCount = 0,
+  lastCalcTime = null,
 }: HomeHeaderProps) => {
   return (
     <View style={[styles.headerBg, centerTitle && styles.headerBgCompact]}>
@@ -60,18 +86,20 @@ export const HomeHeader = ({
           <View style={styles.statsRowHorz}>
             <View style={styles.statsItemHorz}>
               <IconSymbol name="home" size={20} color="#7a7a52" />
-              <Text style={styles.statsValueHorz}>4</Text>
-              <Text style={styles.statsLabelHorz}>Total fields</Text>
+              <Text style={styles.statsValueHorz}>{alertsCount}</Text>
+              <Text style={styles.statsLabelHorz}>Saved Alerts</Text>
             </View>
             <View style={styles.statsItemHorz}>
               <IconSymbol name="eco" size={20} color="#7a7a52" />
-              <Text style={styles.statsValueHorz}>2</Text>
-              <Text style={styles.statsLabelHorz}>Crops planted</Text>
+              <Text style={styles.statsValueHorz}>{commoditiesCount}</Text>
+              <Text style={styles.statsLabelHorz}>Commodities</Text>
             </View>
             <View style={styles.statsItemHorz}>
               <IconSymbol name="access-time" size={20} color="#7a7a52" />
-              <Text style={styles.statsValueHorz}>2d</Text>
-              <Text style={styles.statsLabelHorz}>Last calc</Text>
+              <Text style={styles.statsValueHorz}>
+                {lastCalcTime ? formatCompactDistanceToNow(lastCalcTime) : "-"}
+              </Text>
+              <Text style={styles.statsLabelHorz}>Last Calc</Text>
             </View>
           </View>
           <View style={styles.statsDividerHorz} />

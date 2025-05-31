@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -62,7 +63,7 @@ export default function CalculationForm(props: any) {
     setFields((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     console.log("[CalculationForm] handleCalculate", { fields });
     setLoading(true);
     // Parse all fields as numbers, defaulting to 0 if empty
@@ -113,6 +114,12 @@ export default function CalculationForm(props: any) {
 
     setResult(null);
     setResultModalVisible(true);
+    // Save last calculation time
+    try {
+      await AsyncStorage.setItem("@last_calc_time", Date.now().toString());
+    } catch (e) {
+      console.warn("Failed to save last calc time", e);
+    }
     // Simulate loading for 1 second
     setTimeout(() => {
       setResult(calcResult);
