@@ -1,6 +1,7 @@
 import { HomeHeader } from "@/components/HomeHeader";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import i18n from "../../i18n";
 
 const LANGUAGES = [
   { label: "English", value: "en" },
@@ -17,16 +19,22 @@ const LANGUAGES = [
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(i18n.language || "en");
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const handleLanguageChange = (lang: string) => {
+    setLanguage(lang);
+    i18n.changeLanguage(lang);
+  };
 
   return (
     <View style={styles.root}>
-      <HomeHeader title="Settings" onBackPress={() => router.back()} />
+      <HomeHeader title={t("Settings")} onBackPress={() => router.back()} />
       <ScrollView contentContainerStyle={styles.contentSection}>
-        <Text style={styles.title}>App Settings</Text>
+        <Text style={styles.title}>{t("App Settings")}</Text>
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Enable Notifications</Text>
+          <Text style={styles.settingLabel}>{t("Enable Notifications")}</Text>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
@@ -35,11 +43,11 @@ export default function SettingsScreen() {
           />
         </View>
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Theme</Text>
-          <Text style={styles.settingValue}>System Default</Text>
+          <Text style={styles.settingLabel}>{t("Theme")}</Text>
+          <Text style={styles.settingValue}>{t("System Default")}</Text>
         </View>
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Language</Text>
+          <Text style={styles.settingLabel}>{t("Language")}</Text>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             {LANGUAGES.map((lang) => (
               <TouchableOpacity
@@ -48,7 +56,7 @@ export default function SettingsScreen() {
                   styles.langBtn,
                   language === lang.value && styles.langBtnActive,
                 ]}
-                onPress={() => setLanguage(lang.value)}
+                onPress={() => handleLanguageChange(lang.value)}
               >
                 <Text
                   style={[
@@ -63,10 +71,10 @@ export default function SettingsScreen() {
           </View>
         </View>
         <View style={styles.divider} />
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>{t("Account")}</Text>
         <TouchableOpacity style={styles.accountBtn}>
           <Text style={styles.accountBtnText}>
-            Manage Account (Coming Soon)
+            {t("Manage Account (Coming Soon)")}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9f5e1",
   },
   contentSection: {
-    padding: 24,
+    padding: 18,
     paddingTop: 18,
   },
   title: {

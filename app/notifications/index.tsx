@@ -2,6 +2,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   FlatList,
@@ -28,6 +29,7 @@ const { width } = Dimensions.get("window");
 console.log("[NotificationsScreen (app/notifications/index)] File loaded");
 export default function NotificationsScreen() {
   const { notifications, clearAll, removeNotification } = useNotifications();
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
@@ -87,7 +89,7 @@ export default function NotificationsScreen() {
                 color="#3e6b2f"
                 style={styles.notificationIcon}
               />
-              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationTitle}>{t(item.title)}</Text>
             </View>
           </View>
           {item.image_url && (
@@ -97,13 +99,13 @@ export default function NotificationsScreen() {
               resizeMode="cover"
             />
           )}
-          <Text style={styles.notificationBody}>{item.body}</Text>
+          <Text style={styles.notificationBody}>{t(item.body)}</Text>
           {item.button_text && (
             <TouchableOpacity
               style={styles.button}
               onPress={() => handleNotificationPress(item)}
             >
-              <Text style={styles.buttonText}>{item.button_text}</Text>
+              <Text style={styles.buttonText}>{t(item.button_text)}</Text>
             </TouchableOpacity>
           )}
           <Text style={styles.notificationTime}>
@@ -150,7 +152,7 @@ export default function NotificationsScreen() {
     <View style={styles.root}>
       {/* Header Section */}
       <HomeHeader
-        title="Notifications"
+        title={t("Notifications")}
         onBackPress={() => router.back()}
         paddingOverride={{ paddingTop: 60, paddingBottom: 28 }}
       />
@@ -159,7 +161,7 @@ export default function NotificationsScreen() {
         <View style={{ flex: 1 }} />
         {notifications.length > 0 && (
           <Text style={styles.clearAllText} onPress={handleClearAll}>
-            Clear All
+            {t("Clear All")}
           </Text>
         )}
       </View>
@@ -181,7 +183,7 @@ export default function NotificationsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No notifications yet</Text>
+              <Text style={styles.emptyText}>{t("No notifications yet")}</Text>
             </View>
           }
         />
@@ -204,7 +206,7 @@ export default function NotificationsScreen() {
             {selectedNotification && (
               <>
                 <Text style={styles.modalTitle}>
-                  {selectedNotification.title}
+                  {t(selectedNotification.title)}
                 </Text>
                 <Text style={styles.modalTime}>
                   {formatDistanceToNow(
@@ -220,7 +222,7 @@ export default function NotificationsScreen() {
                   />
                 )}
                 <Text style={styles.modalBody}>
-                  {selectedNotification.body}
+                  {t(selectedNotification.body)}
                 </Text>
               </>
             )}

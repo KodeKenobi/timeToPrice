@@ -1,11 +1,11 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Picker } from "@react-native-picker/picker";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { XMLParser } from "fast-xml-parser";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   AppState,
@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import SelectDropdown from "react-native-select-dropdown";
 import { useDispatch, useSelector } from "react-redux";
 import CostAnalysisModal from "../../components/CostAnalysisModal";
 import { HomeHeader } from "../../components/HomeHeader";
@@ -94,6 +95,7 @@ export default function HomeScreen(props: any) {
   const alerts = useSelector((state: RootState) => state.alerts.alerts);
   const dispatch = useDispatch();
   const { notifications } = useNotifications();
+  const { t } = useTranslation();
   // Get unique commodities from marketData
   const commodityOptions = Array.from(
     new Set(marketData.map((row: any) => row.SecurityName))
@@ -111,32 +113,52 @@ export default function HomeScreen(props: any) {
   const [costAnalysisModalVisible, setCostAnalysisModalVisible] =
     useState(false);
 
+  const addTestEntry = () => {
+    setSavedEntries((entries) => {
+      const updated = [
+        ...entries,
+        {
+          commodity: "YELLOW MAIZE FUTURE SPOT",
+          priceWithProfit: "5000",
+        },
+      ];
+      console.log("[HomeScreen] addTestEntry", updated);
+      return updated;
+    });
+  };
+
+  const handleOpenMarketModal = () => {
+    setMarketModalVisible(true);
+    fetchMarketData();
+    console.log("[HomeScreen] handleOpenMarketModal");
+  };
+
   const cards = [
     {
-      title: "New Calculation",
-      subtitle: "Create cost calculation",
-      badge: "Calculate Now",
+      title: t("New Calculation"),
+      subtitle: t("Create cost calculation"),
+      badge: t("Calculate Now"),
       icon: "calculator",
       onPress: () => router.push("/calculate"),
     },
     {
-      title: "Previous Calculations",
-      subtitle: "View history",
-      badge: "History",
+      title: t("Previous Calculations"),
+      subtitle: t("View history"),
+      badge: t("History"),
       icon: "history",
       onPress: () => setShowPrevCalcs(true),
     },
     {
-      title: "Market Prices",
-      subtitle: "Check current rates",
-      badge: "Live Prices",
+      title: t("Market Prices"),
+      subtitle: t("Check current rates"),
+      badge: t("Live Prices"),
       icon: "trending-up",
-      onPress: () => {},
+      onPress: handleOpenMarketModal,
     },
     {
-      title: "Cost Analysis",
-      subtitle: "View insights",
-      badge: "Analytics",
+      title: t("Cost Analysis"),
+      subtitle: t("View insights"),
+      badge: t("Analytics"),
       icon: "bar-chart",
       onPress: () => setCostAnalysisModalVisible(true),
     },
@@ -188,8 +210,11 @@ export default function HomeScreen(props: any) {
       // Add new notification to storage
       const n = {
         id: Date.now().toString(),
-        title: "Alert",
-        body: `Your alert for ${commodity} at ${lastPrice} has been triggered!`,
+        title: t("Alert"),
+        body: t(
+          "Your alert for {{commodity}} at {{lastPrice}} has been triggered!",
+          { commodity, lastPrice }
+        ),
         image_url: null,
         button_text: null,
         button_link: null,
@@ -206,8 +231,11 @@ export default function HomeScreen(props: any) {
     }
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Alert",
-        body: `Your alert for ${commodity} at ${lastPrice} has been triggered!`,
+        title: t("Alert"),
+        body: t(
+          "Your alert for {{commodity}} at {{lastPrice}} has been triggered!",
+          { commodity, lastPrice }
+        ),
         sound: true,
         data: {
           commodity,
@@ -224,11 +252,18 @@ export default function HomeScreen(props: any) {
     setMarketLoading(true);
     setMarketError(null);
     console.log("[HomeScreen] fetchMarketData: start");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+      setMarketError(t("Request timed out. Please try again."));
+      setMarketLoading(false);
+    }, 8000); // 8 seconds
     try {
       const url =
         "https://df.marketdata.feeds.iress.com/feed/2642/?token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzZWNJRCI6MTE5NiwiaWF0IjoxNzQxNzExNjI3LCJhdWQiOiJpcmVzcy5jby56YSIsImlzcyI6ImFjY291bnRzLmlyZXNzLmNvLnphIn0.nWybRXpaODHmTTM80mJScPWX7noGWcxXHUdl8E05KtljjEvVqs4hgZt7hc2nCJzJBN_AOfavu3TG1wv8LHJ18Q";
       console.log("[HomeScreen] fetchMarketData: fetching", url);
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
       console.log("[HomeScreen] fetchMarketData: response", response.status);
       if (!response.ok) throw new Error("Failed to fetch market data");
       const text = await response.text();
@@ -307,7 +342,17 @@ export default function HomeScreen(props: any) {
         );
       });
     } catch (err: any) {
-      setMarketError(err.message || "Error fetching market data");
+      clearTimeout(timeout);
+      if (err.name === "AbortError") {
+        setMarketError(t("Request timed out. Please try again."));
+      } else {
+        setMarketError(
+          err.message ||
+            t(
+              "Unable to load market data. Please check your connection or try again later."
+            )
+        );
+      }
       console.error("[HomeScreen] fetchMarketData: error", err);
     } finally {
       setMarketLoading(false);
@@ -326,26 +371,6 @@ export default function HomeScreen(props: any) {
       console.log("[HomeScreen] useEffect (cleanup fetchMarketData interval)");
     };
   }, [savedEntries]);
-
-  const addTestEntry = () => {
-    setSavedEntries((entries) => {
-      const updated = [
-        ...entries,
-        {
-          commodity: "YELLOW MAIZE FUTURE SPOT",
-          priceWithProfit: "5000",
-        },
-      ];
-      console.log("[HomeScreen] addTestEntry", updated);
-      return updated;
-    });
-  };
-
-  const handleOpenMarketModal = () => {
-    setMarketModalVisible(true);
-    fetchMarketData();
-    console.log("[HomeScreen] handleOpenMarketModal");
-  };
 
   const cardsWithModal = cards.map((card) =>
     card.title === "Market Prices"
@@ -458,13 +483,13 @@ export default function HomeScreen(props: any) {
         style={[styles.contentSection, { width: "100%", alignSelf: "center" }]}
       >
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Dashboard Shortcuts</Text>
-          <Pressable
+          <Text style={styles.sectionTitle}>{t("Dashboard Shortcuts")}</Text>
+          <TouchableOpacity
             style={styles.sectionViewAllBtn}
             onPress={() => setAlertsModalVisible(true)}
           >
-            <Text style={styles.sectionViewAllBtnText}>Alerts</Text>
-          </Pressable>
+            <Text style={styles.sectionViewAllBtnText}>{t("Alerts")}</Text>
+          </TouchableOpacity>
         </View>
         <ScrollView
           style={styles.cardsListModern}
@@ -560,7 +585,7 @@ export default function HomeScreen(props: any) {
               }}
             >
               <Text style={{ flex: 2, fontWeight: "bold", color: "#3e6b2f" }}>
-                Commodity
+                {t("Commodity")}
               </Text>
               <Text
                 style={{
@@ -570,7 +595,7 @@ export default function HomeScreen(props: any) {
                   textAlign: "right",
                 }}
               >
-                High
+                {t("High")}
               </Text>
               <Text
                 style={{
@@ -580,7 +605,7 @@ export default function HomeScreen(props: any) {
                   textAlign: "right",
                 }}
               >
-                Low
+                {t("Low")}
               </Text>
               <Text
                 style={{
@@ -590,9 +615,10 @@ export default function HomeScreen(props: any) {
                   textAlign: "right",
                 }}
               >
-                Last
+                {t("Last")}
               </Text>
             </View>
+            {/* Market Prices Modal Content */}
             <ScrollView style={{ maxHeight: 300 }}>
               {marketLoading ? (
                 <View
@@ -611,14 +637,46 @@ export default function HomeScreen(props: any) {
                       fontWeight: "bold",
                     }}
                   >
-                    Loading...
+                    {t("Loading...")}
                   </Text>
                 </View>
-              ) : marketData.length === 0 ? (
+              ) : marketError ? (
+                <View
+                  style={{
+                    alignItems: "center",
+                    marginTop: 32,
+                    marginBottom: 32,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#e57373",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                      marginBottom: 12,
+                    }}
+                  >
+                    {marketError}
+                  </Text>
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: "#3e6b2f",
+                      borderRadius: 20,
+                      paddingVertical: 10,
+                      paddingHorizontal: 24,
+                    }}
+                    onPress={fetchMarketData}
+                  >
+                    <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                      {t("Retry")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : commodityOptions.length === 0 ? (
                 <Text
                   style={{ color: "#888", textAlign: "center", marginTop: 16 }}
                 >
-                  No data available.
+                  {t("No data available.")}
                 </Text>
               ) : (
                 marketData.map((row, i) => (
@@ -679,7 +737,7 @@ export default function HomeScreen(props: any) {
               disabled={marketLoading}
             >
               <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 15 }}>
-                Close
+                {t("Close")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -700,10 +758,11 @@ export default function HomeScreen(props: any) {
           }}
         >
           <HomeHeader
-            title="Alerts"
+            title={t("Alerts")}
             notificationCount={notifications.length}
             onNotificationsPress={handleOpenNotificationsScreen}
             centerTitle
+            onBackPress={() => setAlertsModalVisible(false)}
           />
           <ScrollView
             style={{ flex: 1 }}
@@ -724,7 +783,7 @@ export default function HomeScreen(props: any) {
                 marginBottom: 18,
               }}
             >
-              Manage Price Alerts
+              {t("manage_price_alerts")}
             </Text>
             <View
               style={{
@@ -746,11 +805,10 @@ export default function HomeScreen(props: any) {
                 style={{ marginRight: 10 }}
               />
               <Text style={{ color: "#3e6b2f", fontSize: 15, flex: 1 }}>
-                Tip: Check the Market Prices card on your dashboard for the
-                latest rates.
+                {t("dashboard_tip")}
               </Text>
             </View>
-            {marketLoading || commodityOptions.length === 0 ? (
+            {marketLoading ? (
               <View style={{ alignItems: "center", marginVertical: 32 }}>
                 <ActivityIndicator size="large" color="#3e6b2f" />
                 <Text
@@ -760,9 +818,41 @@ export default function HomeScreen(props: any) {
                     fontWeight: "bold",
                   }}
                 >
-                  Loading commodities...
+                  {t("Loading commodities...")}
                 </Text>
               </View>
+            ) : marketError ? (
+              <View style={{ alignItems: "center", marginVertical: 32 }}>
+                <Text
+                  style={{
+                    color: "#e57373",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                    marginBottom: 12,
+                  }}
+                >
+                  {marketError}
+                </Text>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: "#3e6b2f",
+                    borderRadius: 20,
+                    paddingVertical: 10,
+                    paddingHorizontal: 24,
+                  }}
+                  onPress={fetchMarketData}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                    {t("Retry")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : commodityOptions.length === 0 ? (
+              <Text
+                style={{ color: "#888", textAlign: "center", marginTop: 16 }}
+              >
+                {t("No data available.")}
+              </Text>
             ) : (
               <>
                 <Text
@@ -772,7 +862,7 @@ export default function HomeScreen(props: any) {
                     marginBottom: 8,
                   }}
                 >
-                  Commodity
+                  {t("Commodity")}
                 </Text>
                 <View style={{ marginBottom: 12 }}>
                   <View
@@ -790,27 +880,43 @@ export default function HomeScreen(props: any) {
                       position: "relative",
                     }}
                   >
-                    <Picker
-                      selectedValue={selectedCommodity}
-                      onValueChange={(itemValue) =>
-                        setSelectedCommodity(itemValue)
+                    <SelectDropdown
+                      data={commodityOptions}
+                      onSelect={(selectedItem: string) =>
+                        setSelectedCommodity(selectedItem)
                       }
-                      style={{
+                      defaultButtonText={t("Select commodity...")}
+                      buttonTextAfterSelection={(selectedItem: string) =>
+                        selectedItem
+                      }
+                      rowTextForSelection={(item: string) => item}
+                      buttonStyle={{
                         flex: 1,
-                        color: "#222",
                         backgroundColor: "transparent",
+                        borderWidth: 0,
+                        height: 44,
+                        justifyContent: "center",
+                        alignItems: "flex-start",
+                        paddingHorizontal: 12,
                       }}
-                      dropdownIconColor="#3e6b2f"
-                    >
-                      <Picker.Item label="Select commodity..." value="" />
-                      {commodityOptions.map((option) => (
-                        <Picker.Item
-                          key={option}
-                          label={option}
-                          value={option}
-                        />
-                      ))}
-                    </Picker>
+                      buttonTextStyle={{
+                        color: "#222",
+                        textAlign: "left",
+                        fontSize: 16,
+                      }}
+                      dropdownStyle={{
+                        borderRadius: 8,
+                      }}
+                      rowStyle={{
+                        height: 44,
+                        alignItems: "center",
+                      }}
+                      rowTextStyle={{
+                        color: "#222",
+                        fontSize: 16,
+                      }}
+                      selectedRowStyle={{ backgroundColor: "#e9f5e1" }}
+                    />
                     <MaterialIcons
                       name="arrow-drop-down"
                       size={28}
@@ -830,7 +936,7 @@ export default function HomeScreen(props: any) {
                     marginBottom: 8,
                   }}
                 >
-                  Price Type
+                  {t("Price Type")}
                 </Text>
                 <View style={{ marginBottom: 12 }}>
                   <View
@@ -848,27 +954,43 @@ export default function HomeScreen(props: any) {
                       position: "relative",
                     }}
                   >
-                    <Picker
-                      selectedValue={selectedPriceType}
-                      onValueChange={(itemValue) =>
-                        setSelectedPriceType(itemValue)
+                    <SelectDropdown
+                      data={["High", "Low", "Last"]}
+                      onSelect={(selectedItem: "High" | "Low" | "Last") =>
+                        setSelectedPriceType(selectedItem)
                       }
-                      style={{
+                      defaultButtonText={t("Select price type...")}
+                      buttonTextAfterSelection={(selectedItem: string) =>
+                        t(selectedItem)
+                      }
+                      rowTextForSelection={(item: string) => t(item)}
+                      buttonStyle={{
                         flex: 1,
-                        color: "#222",
                         backgroundColor: "transparent",
+                        borderWidth: 0,
+                        height: 44,
+                        justifyContent: "center",
+                        alignItems: "flex-start",
+                        paddingHorizontal: 12,
                       }}
-                      dropdownIconColor="#3e6b2f"
-                    >
-                      <Picker.Item label="Select price type..." value="" />
-                      {["High", "Low", "Last"].map((option) => (
-                        <Picker.Item
-                          key={option}
-                          label={option}
-                          value={option}
-                        />
-                      ))}
-                    </Picker>
+                      buttonTextStyle={{
+                        color: "#222",
+                        textAlign: "left",
+                        fontSize: 16,
+                      }}
+                      dropdownStyle={{
+                        borderRadius: 8,
+                      }}
+                      rowStyle={{
+                        height: 44,
+                        alignItems: "center",
+                      }}
+                      rowTextStyle={{
+                        color: "#222",
+                        fontSize: 16,
+                      }}
+                      selectedRowStyle={{ backgroundColor: "#e9f5e1" }}
+                    />
                     <MaterialIcons
                       name="arrow-drop-down"
                       size={28}
@@ -888,7 +1010,7 @@ export default function HomeScreen(props: any) {
                     marginBottom: 8,
                   }}
                 >
-                  Target Value
+                  {t("Target Value")}
                 </Text>
                 <View
                   style={{
@@ -902,7 +1024,7 @@ export default function HomeScreen(props: any) {
                   <TextInput
                     value={targetValue}
                     onChangeText={setTargetValue}
-                    placeholder="Enter target value"
+                    placeholder={t("Enter target value")}
                     keyboardType="numeric"
                     style={{ height: 44, fontSize: 16 }}
                   />
@@ -926,7 +1048,7 @@ export default function HomeScreen(props: any) {
                       fontSize: 15,
                     }}
                   >
-                    Add Alert
+                    {t("Add Alert")}
                   </Text>
                 </TouchableOpacity>
               </>
@@ -940,12 +1062,12 @@ export default function HomeScreen(props: any) {
                 marginTop: 18,
               }}
             >
-              Saved Alerts
+              {t("Saved Alerts")}
             </Text>
             <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
               {alerts.length === 0 ? (
                 <Text style={{ color: "#888", marginBottom: 16 }}>
-                  No alerts set.
+                  {t("No alerts set.")}
                 </Text>
               ) : (
                 alerts.map(
@@ -997,7 +1119,9 @@ export default function HomeScreen(props: any) {
                               marginRight: 8,
                             }}
                           >
-                            {toSentenceCase(alert.priceType)} price
+                            {t("{{type}} price", {
+                              type: toSentenceCase(alert.priceType),
+                            })}
                           </Text>
                           <View
                             style={{
@@ -1027,7 +1151,7 @@ export default function HomeScreen(props: any) {
                           padding: 6,
                           borderRadius: 16,
                         }}
-                        accessibilityLabel="Delete alert"
+                        accessibilityLabel={t("Delete alert")}
                       >
                         <MaterialIcons
                           name="delete"
@@ -1051,7 +1175,7 @@ export default function HomeScreen(props: any) {
               onPress={() => setAlertsModalVisible(false)}
             >
               <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 15 }}>
-                Close
+                {t("Close")}
               </Text>
             </TouchableOpacity>
           </ScrollView>

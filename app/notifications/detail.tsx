@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Image,
   Linking,
@@ -24,6 +24,7 @@ export default function NotificationDetail(props: any) {
     : null;
   console.log("[NotificationDetail] notification param", notification);
   console.log("[NotificationDetail] notificationObj", notificationObj);
+  const { t } = useTranslation();
 
   if (!notificationObj) {
     console.log("[NotificationDetail] No notificationObj");
@@ -39,7 +40,7 @@ export default function NotificationDetail(props: any) {
           }}
           style={{ padding: 8 }}
         >
-          <Text style={{ color: "#3e6b2f" }}>Go Back</Text>
+          <Text style={{ color: "#3e6b2f" }}>{t("Go Back")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -92,7 +93,7 @@ export default function NotificationDetail(props: any) {
         {(notificationObj.button_text || notificationObj.button_link) && (
           <TouchableOpacity style={styles.button} onPress={handleButtonPress}>
             <Text style={styles.buttonText}>
-              {notificationObj.button_text || "Open Link"}
+              {notificationObj.button_text || t("Open Link")}
             </Text>
           </TouchableOpacity>
         )}
@@ -104,7 +105,7 @@ export default function NotificationDetail(props: any) {
         }}
         style={{ padding: 8 }}
       >
-        <Text style={{ color: "#3e6b2f" }}>Go Back</Text>
+        <Text style={{ color: "#3e6b2f" }}>{t("Go Back")}</Text>
       </TouchableOpacity>
     </View>
   );

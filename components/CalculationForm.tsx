@@ -1,6 +1,7 @@
 import { HomeHeader } from "@/components/HomeHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -49,6 +50,7 @@ export default function CalculationForm(props: any) {
   const [resultModalVisible, setResultModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const PREVIOUS_CALCS_KEY = "@previous_calculations";
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.log("[CalculationForm] State snapshot", {
@@ -145,128 +147,130 @@ export default function CalculationForm(props: any) {
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Hectares Planted</Text>
+        <Text style={styles.label}>{t("Hectares Planted")}</Text>
         <TextInput
           style={styles.input}
           value={fields.hectares}
           onChangeText={(v) => handleChange("hectares", v)}
           keyboardType="numeric"
-          placeholder="Enter hectares planted"
+          placeholder={t("Enter hectares planted")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Seed Cost</Text>
+        <Text style={styles.label}>{t("Total Seed Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.seedCost}
           onChangeText={(v) => handleChange("seedCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total seed cost"
+          placeholder={t("Enter total seed cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Fertiliser Cost</Text>
+        <Text style={styles.label}>{t("Total Fertiliser Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.fertiliserCost}
           onChangeText={(v) => handleChange("fertiliserCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total fertiliser cost"
+          placeholder={t("Enter total fertiliser cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Estimated Total Chemicals Cost</Text>
+        <Text style={styles.label}>{t("Estimated Total Chemicals Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.chemicalsCost}
           onChangeText={(v) => handleChange("chemicalsCost", v)}
           keyboardType="numeric"
-          placeholder="Enter estimated total chemicals cost"
+          placeholder={t("Enter estimated total chemicals cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Employee Cost</Text>
+        <Text style={styles.label}>{t("Total Employee Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.employeeCost}
           onChangeText={(v) => handleChange("employeeCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total employee cost"
+          placeholder={t("Enter total employee cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Eskom Cost</Text>
+        <Text style={styles.label}>{t("Total Eskom Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.eskomCost}
           onChangeText={(v) => handleChange("eskomCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total eskom cost"
+          placeholder={t("Enter total eskom cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Fuel Cost</Text>
+        <Text style={styles.label}>{t("Total Fuel Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.fuelCost}
           onChangeText={(v) => handleChange("fuelCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total fuel cost"
+          placeholder={t("Enter total fuel cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Transport Cost</Text>
+        <Text style={styles.label}>{t("Total Transport Cost")}</Text>
         <TextInput
           style={styles.input}
           value={fields.transportCost}
           onChangeText={(v) => handleChange("transportCost", v)}
           keyboardType="numeric"
-          placeholder="Enter total transport cost"
+          placeholder={t("Enter total transport cost")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Other Expenses</Text>
+        <Text style={styles.label}>{t("Other Expenses")}</Text>
         <TextInput
           style={styles.input}
           value={fields.otherExpenses}
           onChangeText={(v) => handleChange("otherExpenses", v)}
           keyboardType="numeric"
-          placeholder="Enter other expenses"
+          placeholder={t("Enter other expenses")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Total Profit Wanted</Text>
+        <Text style={styles.label}>{t("Total Profit Wanted")}</Text>
         <TextInput
           style={styles.input}
           value={fields.profitWanted}
           onChangeText={(v) => handleChange("profitWanted", v)}
           keyboardType="numeric"
-          placeholder="Enter total profit wanted"
+          placeholder={t("Enter total profit wanted")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Average long term yield per Hectare</Text>
+        <Text style={styles.label}>
+          {t("Average long term yield per Hectare")}
+        </Text>
         <TextInput
           style={styles.input}
           value={fields.averageYield}
           onChangeText={(v) => handleChange("averageYield", v)}
           keyboardType="numeric"
-          placeholder="Enter average long term yield per hectare"
+          placeholder={t("Enter average long term yield per hectare")}
           placeholderTextColor="#888"
         />
       </View>
       <View style={[styles.fieldGroup, styles.row]}>
-        <Text style={styles.label}>Do you have insurance?</Text>
+        <Text style={styles.label}>{t("Do you have insurance?")}</Text>
         <Switch
           value={fields.hasInsurance}
           onValueChange={(v) => handleChange("hasInsurance", v)}
@@ -274,19 +278,19 @@ export default function CalculationForm(props: any) {
       </View>
       {fields.hasInsurance && (
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Insurance Amount</Text>
+          <Text style={styles.label}>{t("Insurance Amount")}</Text>
           <TextInput
             style={styles.input}
             value={fields.insurance}
             onChangeText={(v) => handleChange("insurance", v)}
             keyboardType="numeric"
-            placeholder="Enter insurance amount"
+            placeholder={t("Enter insurance amount")}
             placeholderTextColor="#888"
           />
         </View>
       )}
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Type of Commodity</Text>
+        <Text style={styles.label}>{t("Type of Commodity")}</Text>
         <TouchableOpacity
           style={styles.commoditySelector}
           onPress={() => setCommodityModalVisible(true)}
@@ -305,7 +309,7 @@ export default function CalculationForm(props: any) {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Commodity</Text>
+              <Text style={styles.modalTitle}>{t("Select Commodity")}</Text>
               <FlatList
                 data={commodities}
                 keyExtractor={(item) => item}
@@ -325,7 +329,7 @@ export default function CalculationForm(props: any) {
                 style={styles.modalCancel}
                 onPress={() => setCommodityModalVisible(false)}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={styles.modalCancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -333,7 +337,7 @@ export default function CalculationForm(props: any) {
       </View>
       <View style={styles.saveButtonContainer}>
         <Pressable style={styles.saveButton} onPress={handleCalculate}>
-          <Text style={styles.saveButtonText}>Calculate</Text>
+          <Text style={styles.saveButtonText}>{t("Calculate")}</Text>
         </Pressable>
       </View>
       {/* Result Modal */}
@@ -345,7 +349,7 @@ export default function CalculationForm(props: any) {
       >
         <View style={{ flex: 1, backgroundColor: "#e9f5e1" }}>
           <HomeHeader
-            title="Calculation Result"
+            title={t("Calculation Result")}
             onBackPress={() => setResultModalVisible(false)}
             paddingOverride={{ paddingTop: 54, paddingBottom: 32 }}
           />
@@ -368,55 +372,58 @@ export default function CalculationForm(props: any) {
                 <View style={{ alignItems: "center", marginVertical: 24 }}>
                   <ActivityIndicator size="large" color="#3e6b2f" />
                   <Text style={{ marginTop: 16, fontSize: 16 }}>
-                    Calculating...
+                    {t("Calculating...")}
                   </Text>
                 </View>
               ) : (
                 result && (
                   <>
                     {[
-                      { label: "Hectares Planted", value: fields.hectares },
-                      { label: "Total Seed Cost", value: fields.seedCost },
+                      { label: t("Hectares Planted"), value: fields.hectares },
+                      { label: t("Total Seed Cost"), value: fields.seedCost },
                       {
-                        label: "Total Fertiliser Cost",
+                        label: t("Total Fertiliser Cost"),
                         value: fields.fertiliserCost,
                       },
                       {
-                        label: "Estimated Total Chemicals Cost",
+                        label: t("Estimated Total Chemicals Cost"),
                         value: fields.chemicalsCost,
                       },
                       {
-                        label: "Total Employee Cost",
+                        label: t("Total Employee Cost"),
                         value: fields.employeeCost,
                       },
-                      { label: "Total Eskom Cost", value: fields.eskomCost },
-                      { label: "Total Fuel Cost", value: fields.fuelCost },
+                      { label: t("Total Eskom Cost"), value: fields.eskomCost },
+                      { label: t("Total Fuel Cost"), value: fields.fuelCost },
                       {
-                        label: "Total Transport Cost",
+                        label: t("Total Transport Cost"),
                         value: fields.transportCost,
                       },
-                      { label: "Other Expenses", value: fields.otherExpenses },
                       {
-                        label: "Total Profit Wanted",
+                        label: t("Other Expenses"),
+                        value: fields.otherExpenses,
+                      },
+                      {
+                        label: t("Total Profit Wanted"),
                         value: fields.profitWanted,
                       },
                       {
-                        label: "Average long term yield per Hectare",
+                        label: t("Average long term yield per Hectare"),
                         value: fields.averageYield,
                       },
                       {
-                        label: "Do you have insurance?",
-                        value: fields.hasInsurance ? "Yes" : "No",
+                        label: t("Do you have insurance?"),
+                        value: fields.hasInsurance ? t("Yes") : t("No"),
                       },
                       ...(fields.hasInsurance
                         ? [
                             {
-                              label: "Insurance Amount",
+                              label: t("Insurance Amount"),
                               value: fields.insurance,
                             },
                           ]
                         : []),
-                      { label: "Commodity", value: fields.commodity },
+                      { label: t("Commodity"), value: fields.commodity },
                     ].map((row, idx) => (
                       <View
                         key={row.label}
@@ -467,7 +474,8 @@ export default function CalculationForm(props: any) {
                           marginBottom: 4,
                         }}
                       >
-                        Break-even Price per ton: R{result.breakEven}
+                        {t("Break-even Price per ton: R")}
+                        {result.breakEven}
                       </Text>
                       <Text
                         style={{
@@ -476,7 +484,7 @@ export default function CalculationForm(props: any) {
                           fontWeight: "bold",
                         }}
                       >
-                        Price per ton (including profit): R
+                        {t("Price per ton (including profit): R")}
                         {result.priceWithProfit}
                       </Text>
                     </View>
@@ -488,7 +496,7 @@ export default function CalculationForm(props: any) {
                 onPress={() => !loading && setResultModalVisible(false)}
                 disabled={loading}
               >
-                <Text style={styles.modalCancelText}>Close</Text>
+                <Text style={styles.modalCancelText}>{t("Close")}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

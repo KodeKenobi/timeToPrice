@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { IconSymbol } from "./ui/IconSymbol";
 
@@ -48,6 +49,7 @@ export const HomeHeader = ({
   onBackPress,
   paddingOverride,
 }: HomeHeaderProps) => {
+  const { t } = useTranslation();
   // Compute dynamic padding if override is provided
   const headerBgStyle = [
     styles.headerBg,
@@ -92,8 +94,8 @@ export const HomeHeader = ({
         <View style={centerTitle ? styles.headerContentCenter : undefined}>
           {showGreeting ? (
             <>
-              <Text style={styles.greeting}>Hello,</Text>
-              <Text style={styles.subtext}>Welcome to our app</Text>
+              <Text style={styles.greeting}>{t("Hello,")}</Text>
+              <Text style={styles.subtext}>{t("Welcome to our app")}</Text>
             </>
           ) : (
             <Text style={styles.headerTitle}>{title}</Text>
@@ -129,24 +131,24 @@ export const HomeHeader = ({
             <View style={styles.statsItemHorz}>
               <IconSymbol name="notifications-none" size={20} color="#7a7a52" />
               <Text style={styles.statsValueHorz}>{alertsCount}</Text>
-              <Text style={styles.statsLabelHorz}>Saved Alerts</Text>
+              <Text style={styles.statsLabelHorz}>{t("Saved Alerts")}</Text>
             </View>
             <View style={styles.statsItemHorz}>
               <IconSymbol name="eco" size={20} color="#7a7a52" />
               <Text style={styles.statsValueHorz}>{commoditiesCount}</Text>
-              <Text style={styles.statsLabelHorz}>Commodities</Text>
+              <Text style={styles.statsLabelHorz}>{t("Commodities")}</Text>
             </View>
             <View style={styles.statsItemHorz}>
               <IconSymbol name="access-time" size={20} color="#7a7a52" />
               <Text style={styles.statsValueHorz}>
                 {lastCalcTime ? formatCompactDistanceToNow(lastCalcTime) : "-"}
               </Text>
-              <Text style={styles.statsLabelHorz}>Last Calc</Text>
+              <Text style={styles.statsLabelHorz}>{t("Last Calc")}</Text>
             </View>
           </View>
           <View style={styles.statsDividerHorz} />
           <Text style={styles.motivationHorz}>
-            You're on track for a great season!
+            {t("You're on track for a great season!")}
           </Text>
         </View>
       )}

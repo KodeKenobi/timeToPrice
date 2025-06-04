@@ -1,12 +1,15 @@
 import { HomeHeader } from "@/components/HomeHeader";
+import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -21,6 +24,7 @@ export default function PreviousCalculationsModal({
 }) {
   const [calculations, setCalculations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!visible) return;
@@ -37,13 +41,26 @@ export default function PreviousCalculationsModal({
     fetchCalcs();
   }, [visible]);
 
+  const handleDelete = async (index: number) => {
+    const updatedCalcs = calculations.filter((_, i) => i !== index);
+    setCalculations(updatedCalcs);
+    try {
+      await AsyncStorage.setItem(
+        PREVIOUS_CALCS_KEY,
+        JSON.stringify(updatedCalcs)
+      );
+    } catch (e) {
+      // Optionally handle error
+    }
+  };
+
   if (!visible) return null;
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
         <HomeHeader
-          title="Previous Calculations"
+          title={t("Previous Calculations")}
           onBackPress={onClose}
           paddingOverride={{ paddingTop: 54, paddingBottom: 32 }}
         />
@@ -57,68 +74,91 @@ export default function PreviousCalculationsModal({
           ) : calculations.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                No previous calculations found.
+                {t("No previous calculations found.")}
               </Text>
             </View>
           ) : (
             calculations.map((entry, idx) => (
               <View key={idx} style={styles.calcCard}>
-                <Text style={styles.calcDate}>
-                  {new Date(entry.timestamp).toLocaleString()}
-                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={styles.calcDate}>
+                    {new Date(entry.timestamp).toLocaleString()}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleDelete(idx)}
+                    accessibilityLabel={t("Delete calculation")}
+                  >
+                    <MaterialIcons name="delete" size={22} color="#b71c1c" />
+                  </TouchableOpacity>
+                </View>
                 <Text style={styles.calcTitle}>{entry.fields.commodity}</Text>
                 <View
                   style={{ borderRadius: 12, overflow: "hidden", marginTop: 8 }}
                 >
                   {[
-                    { label: "Hectares Planted", value: entry.fields.hectares },
-                    { label: "Total Seed Cost", value: entry.fields.seedCost },
                     {
-                      label: "Total Fertiliser Cost",
+                      label: t("Hectares Planted"),
+                      value: entry.fields.hectares,
+                    },
+                    {
+                      label: t("Total Seed Cost"),
+                      value: entry.fields.seedCost,
+                    },
+                    {
+                      label: t("Total Fertiliser Cost"),
                       value: entry.fields.fertiliserCost,
                     },
                     {
-                      label: "Estimated Total Chemicals Cost",
+                      label: t("Estimated Total Chemicals Cost"),
                       value: entry.fields.chemicalsCost,
                     },
                     {
-                      label: "Total Employee Cost",
+                      label: t("Total Employee Cost"),
                       value: entry.fields.employeeCost,
                     },
                     {
-                      label: "Total Eskom Cost",
+                      label: t("Total Eskom Cost"),
                       value: entry.fields.eskomCost,
                     },
-                    { label: "Total Fuel Cost", value: entry.fields.fuelCost },
                     {
-                      label: "Total Transport Cost",
+                      label: t("Total Fuel Cost"),
+                      value: entry.fields.fuelCost,
+                    },
+                    {
+                      label: t("Total Transport Cost"),
                       value: entry.fields.transportCost,
                     },
                     {
-                      label: "Other Expenses",
+                      label: t("Other Expenses"),
                       value: entry.fields.otherExpenses,
                     },
                     {
-                      label: "Total Profit Wanted",
+                      label: t("Total Profit Wanted"),
                       value: entry.fields.profitWanted,
                     },
                     {
-                      label: "Average long term yield per Hectare",
+                      label: t("Average long term yield per Hectare"),
                       value: entry.fields.averageYield,
                     },
                     {
-                      label: "Do you have insurance?",
-                      value: entry.fields.hasInsurance ? "Yes" : "No",
+                      label: t("Do you have insurance?"),
+                      value: entry.fields.hasInsurance ? t("Yes") : t("No"),
                     },
                     ...(entry.fields.hasInsurance
                       ? [
                           {
-                            label: "Insurance Amount",
+                            label: t("Insurance Amount"),
                             value: entry.fields.insurance,
                           },
                         ]
                       : []),
-                    { label: "Commodity", value: entry.fields.commodity },
+                    { label: t("Commodity"), value: entry.fields.commodity },
                   ].map((row, i) => (
                     <View
                       key={row.label}
@@ -167,7 +207,8 @@ export default function PreviousCalculationsModal({
                       marginBottom: 4,
                     }}
                   >
-                    Break-even Price per ton: R{entry.result?.breakEven}
+                    {t("Break-even Price per ton: R")}
+                    {entry.result?.breakEven}
                   </Text>
                   <Text
                     style={{
@@ -176,7 +217,7 @@ export default function PreviousCalculationsModal({
                       fontWeight: "bold",
                     }}
                   >
-                    Price per ton (including profit): R
+                    {t("Price per ton (including profit): R")}
                     {entry.result?.priceWithProfit}
                   </Text>
                 </View>

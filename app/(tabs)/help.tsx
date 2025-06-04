@@ -1,5 +1,6 @@
 import { HomeHeader } from "@/components/HomeHeader";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 console.log("[HelpScreen] File loaded");
@@ -25,38 +26,47 @@ const FAQS = [
 
 export default function HelpScreen(props: any) {
   const router = useRouter();
+  const { t } = useTranslation();
   console.log("[HelpScreen] Render", { props });
   return (
     <View style={styles.root}>
-      <HomeHeader title="Help" onBackPress={() => router.back()} />
+      <HomeHeader title={t("Help")} onBackPress={() => router.back()} />
       <ScrollView contentContainerStyle={styles.contentSection}>
-        <Text style={styles.title}>How can we help you?</Text>
+        <Text style={styles.title}>{t("How can we help you?")}</Text>
         <Text style={styles.paragraph}>
-          Welcome to the Help page! Here are some tips to get you started:
+          {t(
+            "Welcome to the Help page! Here are some tips to get you started:"
+          )}
         </Text>
         <Text style={styles.bullet}>
-          • Use the Dashboard to quickly access calculations, market prices, and
-          alerts.
+          •{" "}
+          {t(
+            "Use the Dashboard to quickly access calculations, market prices, and alerts."
+          )}
         </Text>
         <Text style={styles.bullet}>
-          • Set up price alerts to get notified when your target price is
-          reached.
+          •{" "}
+          {t(
+            "Set up price alerts to get notified when your target price is reached."
+          )}
         </Text>
         <Text style={styles.bullet}>
-          • View your previous calculations and cost analysis for insights.
+          •{" "}
+          {t("View your previous calculations and cost analysis for insights.")}
         </Text>
         <Text style={styles.bullet}>
-          • Tap the settings tab to customize your experience.
+          • {t("Tap the settings tab to customize your experience.")}
         </Text>
         <Text style={styles.paragraph}>
-          If you need further assistance, please contact support or check our
-          website for more resources.
+          {t(
+            "If you need further assistance, please contact support or check our website for more resources."
+          )}
         </Text>
-        <Text style={styles.faqTitle}>Frequently Asked Questions</Text>
+        <Text style={styles.faqTitle}>{t("Frequently Asked Questions")}</Text>
         {FAQS.map((faq, idx) => (
           <View key={idx} style={styles.faqItem}>
-            <Text style={styles.faqQ}>{faq.q}</Text>
-            <Text style={styles.faqA}>{faq.a}</Text>
+            <Text style={styles.faqQ}>{t(faq.q)}</Text>
+            <Text style={styles.faqA}>{t(faq.a)}</Text>
           </View>
         ))}
       </ScrollView>

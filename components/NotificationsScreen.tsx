@@ -3,6 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   FlatList,
@@ -59,6 +60,7 @@ const NotificationsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.log("[NotificationsScreen] useEffect (mount)");
@@ -90,7 +92,7 @@ const NotificationsScreen = () => {
         title:
           typeof notif.request.content.title === "string"
             ? notif.request.content.title
-            : "No Title",
+            : t("No Title"),
         body:
           typeof notif.request.content.body === "string"
             ? notif.request.content.body
@@ -200,7 +202,7 @@ const NotificationsScreen = () => {
               style={styles.button}
               onPress={() => handleNotificationPress(item)}
             >
-              <Text style={styles.buttonText}>{item.button_text}</Text>
+              <Text style={styles.buttonText}>{t(item.button_text)}</Text>
             </TouchableOpacity>
           )}
           <Text style={styles.notificationTime}>
@@ -262,7 +264,7 @@ const NotificationsScreen = () => {
           <IconSymbol name="chevron-left" size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-          Notifications
+          {t("Notifications")}
         </Text>
       </View>
       <FlatList
@@ -275,7 +277,7 @@ const NotificationsScreen = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No notifications yet</Text>
+            <Text style={styles.emptyText}>{t("No notifications yet")}</Text>
           </View>
         }
       />

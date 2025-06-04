@@ -2,18 +2,20 @@ import CalculationForm from "@/components/CalculationForm";
 import { HomeHeader } from "@/components/HomeHeader";
 import { useNotifications } from "@/context/NotificationContext";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 export default function CalculatePage() {
   const { notifications } = useNotifications();
   const router = useRouter();
+  const { t } = useTranslation();
   return (
     <View style={styles.root}>
       {/* Header Section */}
       <HomeHeader
-        title="Calculation"
+        title={t("Calculate")}
         notificationCount={notifications.length}
-        onNotificationsPress={() => router.push("/notifications")}
+        onNotificationsPress={() => router.push("../notifications")}
         paddingOverride={{ paddingTop: 54, paddingBottom: 32 }}
         onBackPress={() => router.back()}
       />

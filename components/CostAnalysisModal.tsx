@@ -1,6 +1,7 @@
 import { HomeHeader } from "@/components/HomeHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Modal,
@@ -26,6 +27,7 @@ export default function CostAnalysisModal({
     avgBreakEven: number;
     avgProfit: number;
   } | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!visible) return;
@@ -69,7 +71,7 @@ export default function CostAnalysisModal({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
         <HomeHeader
-          title="Cost Analysis"
+          title={t("Cost Analysis")}
           onBackPress={onClose}
           paddingOverride={{ paddingTop: 54, paddingBottom: 32 }}
         />
@@ -83,21 +85,21 @@ export default function CostAnalysisModal({
           ) : calculations.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                No previous calculations found.
+                {t("No previous calculations found.")}
               </Text>
             </View>
           ) : (
             <>
               <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>Summary</Text>
+                <Text style={styles.summaryTitle}>{t("Summary")}</Text>
                 <Text style={styles.summaryText}>
-                  Average Break-even Price per ton:{" "}
+                  {t("Average Break-even Price per ton:")}
                   <Text style={styles.summaryValue}>
                     R{summary?.avgBreakEven.toFixed(2) ?? "-"}
                   </Text>
                 </Text>
                 <Text style={styles.summaryText}>
-                  Average Price per ton (with profit):{" "}
+                  {t("Average Price per ton (with profit):")}
                   <Text style={styles.summaryValue}>
                     R{summary?.avgProfit.toFixed(2) ?? "-"}
                   </Text>
@@ -118,62 +120,62 @@ export default function CostAnalysisModal({
                   >
                     {[
                       {
-                        label: "Hectares Planted",
+                        label: t("Hectares Planted"),
                         value: entry.fields.hectares,
                       },
                       {
-                        label: "Total Seed Cost",
+                        label: t("Total Seed Cost"),
                         value: entry.fields.seedCost,
                       },
                       {
-                        label: "Total Fertiliser Cost",
+                        label: t("Total Fertiliser Cost"),
                         value: entry.fields.fertiliserCost,
                       },
                       {
-                        label: "Estimated Total Chemicals Cost",
+                        label: t("Estimated Total Chemicals Cost"),
                         value: entry.fields.chemicalsCost,
                       },
                       {
-                        label: "Total Employee Cost",
+                        label: t("Total Employee Cost"),
                         value: entry.fields.employeeCost,
                       },
                       {
-                        label: "Total Eskom Cost",
+                        label: t("Total Eskom Cost"),
                         value: entry.fields.eskomCost,
                       },
                       {
-                        label: "Total Fuel Cost",
+                        label: t("Total Fuel Cost"),
                         value: entry.fields.fuelCost,
                       },
                       {
-                        label: "Total Transport Cost",
+                        label: t("Total Transport Cost"),
                         value: entry.fields.transportCost,
                       },
                       {
-                        label: "Other Expenses",
+                        label: t("Other Expenses"),
                         value: entry.fields.otherExpenses,
                       },
                       {
-                        label: "Total Profit Wanted",
+                        label: t("Total Profit Wanted"),
                         value: entry.fields.profitWanted,
                       },
                       {
-                        label: "Average long term yield per Hectare",
+                        label: t("Average long term yield per Hectare"),
                         value: entry.fields.averageYield,
                       },
                       {
-                        label: "Do you have insurance?",
-                        value: entry.fields.hasInsurance ? "Yes" : "No",
+                        label: t("Do you have insurance?"),
+                        value: entry.fields.hasInsurance ? t("Yes") : t("No"),
                       },
                       ...(entry.fields.hasInsurance
                         ? [
                             {
-                              label: "Insurance Amount",
+                              label: t("Insurance Amount"),
                               value: entry.fields.insurance,
                             },
                           ]
                         : []),
-                      { label: "Commodity", value: entry.fields.commodity },
+                      { label: t("Commodity"), value: entry.fields.commodity },
                     ].map((row, i) => (
                       <View
                         key={row.label}
@@ -203,13 +205,13 @@ export default function CostAnalysisModal({
                   </View>
                   <View style={styles.resultCard}>
                     <Text style={styles.resultText}>
-                      Break-even Price per ton:{" "}
+                      {t("Break-even Price per ton:")}
                       <Text style={styles.resultValue}>
                         R{entry.result?.breakEven}
                       </Text>
                     </Text>
                     <Text style={styles.resultText}>
-                      Price per ton (including profit):{" "}
+                      {t("Price per ton (including profit):")}
                       <Text style={styles.resultValue}>
                         R{entry.result?.priceWithProfit}
                       </Text>
@@ -221,7 +223,7 @@ export default function CostAnalysisModal({
           )}
         </ScrollView>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>Close</Text>
+          <Text style={styles.closeButtonText}>{t("Close")}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

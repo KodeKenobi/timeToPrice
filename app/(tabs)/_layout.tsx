@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
@@ -7,6 +8,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -25,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t("Home"),
           tabBarIcon: ({ focused }) => (
             <>
               {focused && (
@@ -48,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="calculate"
         options={{
-          title: "Calculate",
+          title: t("Calculate"),
           tabBarIcon: ({ focused }) => (
             <>
               {focused && (
@@ -71,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="help"
         options={{
-          title: "Help",
+          title: t("Help"),
           tabBarIcon: ({ focused }) => (
             <>
               {focused && (
@@ -94,7 +96,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: t("Settings"),
           tabBarIcon: ({ focused }) => (
             <>
               {focused && (
