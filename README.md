@@ -39,9 +39,15 @@ A modern, cross-platform agricultural cost calculation and market monitoring app
 
 ## Screenshots
 
-> _Add screenshots of the main screens here (Dashboard, Calculation, Market Prices, Alerts, Notifications, Settings, Help, etc.)_
+Uploading Screen_Recording_20250613_085906_t2p.mp4…
+![Screenshot_20250613_085921_t2p](https://github.com/user-attachments/assets/a331c49a-1d64-418e-a33c-c4cb5c4d6205)
+![Screenshot_20250613_085928_t2p](https://github.com/user-attachments/assets/eec7edf3-9201-4b7c-a006-50483b060058)
+![Screenshot_20250613_085936_t2p](https://github.com/user-attachments/assets/a30a1f12-3341-4b03-91be-474cfbbf5b17)
+![Screenshot_20250613_085942_t2p](https://github.com/user-attachments/assets/1393bcb4-b7d0-443b-86f1-18d9d9877924)
+![Screenshot_20250613_085953_t2p](https://github.com/user-attachments/assets/f46140a1-9155-4d45-9f15-93768180c89a)
 
 ---
+
 
 ## Getting Started
 
@@ -226,11 +232,6 @@ A modern, cross-platform agricultural cost calculation and market monitoring app
 
 ---
 
-## License
-
-> _Specify your license here (MIT, Apache, etc.)_
-
----
 
 ## Acknowledgements
 
@@ -241,5 +242,3 @@ A modern, cross-platform agricultural cost calculation and market monitoring app
 - [date-fns](https://date-fns.org/)
 
 ---
-
-**For more information, see the code comments and inline documentation.**
