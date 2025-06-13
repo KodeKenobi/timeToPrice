@@ -2,6 +2,14 @@
 
 A modern, cross-platform agricultural cost calculation and market monitoring app built with React Native and Expo. The app helps users calculate break-even prices, track market prices, set price alerts, and manage their farming business more efficiently.
 
+## Download Android App
+
+[![Download for Android](https://img.shields.io/badge/Download%20APK-TimeToPrice-green?style=for-the-badge&logo=android)](https://github.com/KodeKenobi/kodekenobi.github.io/releases/download/t2pv1/timetoprice.apk)
+
+Or [click here to download the APK](https://github.com/KodeKenobi/kodekenobi.github.io/releases/download/t2pv1/timetoprice.apk).
+
+---
+
 ## Table of Contents
 
 - [Features](#features)
