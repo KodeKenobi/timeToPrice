@@ -166,9 +166,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
-// TODO: Implement global i18n support for language switching. Currently, only the UI for language selection is implemented.
-// When a language is selected, all app text should update accordingly.
-// Consider using a context/provider and a translation file for each language.
-// See: https://react.i18next.com/ or similar libraries for inspiration.
-// ---
