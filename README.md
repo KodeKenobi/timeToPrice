@@ -39,7 +39,6 @@ A modern, cross-platform agricultural cost calculation and market monitoring app
 
 ## Screenshots
 
-Uploading Screen_Recording_20250613_085906_t2p.mp4…
 ![Screenshot_20250613_085921_t2p](https://github.com/user-attachments/assets/a331c49a-1d64-418e-a33c-c4cb5c4d6205)
 ![Screenshot_20250613_085928_t2p](https://github.com/user-attachments/assets/eec7edf3-9201-4b7c-a006-50483b060058)
 ![Screenshot_20250613_085936_t2p](https://github.com/user-attachments/assets/a30a1f12-3341-4b03-91be-474cfbbf5b17)
